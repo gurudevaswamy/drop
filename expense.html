@@ -1,0 +1,2703 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Income vs Expenses Planner</title>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    /* Theme Variables */
+    :root[data-theme="dark"] {
+      --bg-primary: #0b0f19;
+      --bg-secondary: #111827;
+      --bg-surface: #1e293b;
+      --border-color: #334155;
+      --border-focus: #6366f1;
+      --text-primary: #f8fafc;
+      --text-secondary: #94a3b8;
+      
+      --accent-color: #6366f1;
+      --accent-hover: #4f46e5;
+      --accent-glow: rgba(99, 102, 241, 0.15);
+      
+      --income-color: #10b981;
+      --income-bg: rgba(16, 185, 129, 0.1);
+      --income-border: rgba(16, 185, 129, 0.2);
+      
+      --expense-color: #f43f5e;
+      --expense-bg: rgba(244, 63, 94, 0.1);
+      --expense-border: rgba(244, 63, 94, 0.2);
+      
+      --warning-color: #fbbf24;
+      --warning-bg: rgba(251, 191, 36, 0.1);
+      --warning-border: rgba(251, 191, 36, 0.2);
+
+      --panel-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.7);
+      --card-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.4);
+      --input-bg: #151e2e;
+    }
+
+    :root[data-theme="light"] {
+      --bg-primary: #f8fafc;
+      --bg-secondary: #f1f5f9;
+      --bg-surface: #ffffff;
+      --border-color: #e2e8f0;
+      --border-focus: #4f46e5;
+      --text-primary: #0f172a;
+      --text-secondary: #64748b;
+      
+      --accent-color: #4f46e5;
+      --accent-hover: #4338ca;
+      --accent-glow: rgba(79, 70, 229, 0.08);
+      
+      --income-color: #059669;
+      --income-bg: rgba(5, 150, 105, 0.08);
+      --income-border: rgba(5, 150, 105, 0.15);
+      
+      --expense-color: #e11d48;
+      --expense-bg: rgba(225, 29, 72, 0.08);
+      --expense-border: rgba(225, 29, 72, 0.15);
+      
+      --warning-color: #d97706;
+      --warning-bg: rgba(217, 119, 6, 0.08);
+      --warning-border: rgba(217, 119, 6, 0.15);
+
+      --panel-shadow: 0 10px 25px -10px rgba(0, 0, 0, 0.05);
+      --card-shadow: 0 4px 15px -3px rgba(0, 0, 0, 0.03);
+      --input-bg: #ffffff;
+    }
+
+    * {
+      box-sizing: border-box;
+      transition: background-color 0.2s ease, border-color 0.2s ease, color 0.15s ease;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+      line-height: 1.4;
+      padding-top: 56px; /* Space for sticky header */
+    }
+
+    /* Sticky Navbar */
+    header.main-header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 56px;
+      background: rgba(15, 23, 42, 0.7);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      z-index: 1000;
+    }
+
+    :root[data-theme="light"] header.main-header {
+      background: rgba(255, 255, 255, 0.8);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .brand-icon {
+      color: var(--accent-color);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--accent-glow);
+      padding: 8px;
+      border-radius: 10px;
+      border: 1px solid var(--border-color);
+    }
+
+    .brand h1 {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    /* Tabs Segmented Control */
+    .tabs {
+      display: flex;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      padding: 4px;
+      border-radius: 12px;
+      gap: 2px;
+    }
+
+    .tab-button {
+      background: transparent;
+      border: none;
+      color: var(--text-secondary);
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .tab-button i {
+      width: 16px;
+      height: 16px;
+    }
+
+    .tab-button:hover {
+      color: var(--text-primary);
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    :root[data-theme="light"] .tab-button:hover {
+      background: rgba(0, 0, 0, 0.03);
+    }
+
+    .tab-button.active {
+      background: var(--bg-surface);
+      color: var(--accent-color);
+      box-shadow: var(--card-shadow);
+      border: 1px solid var(--border-color);
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    /* Control Styles */
+    .btn-icon {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      color: var(--text-primary);
+      cursor: pointer;
+      padding: 8px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .btn-icon:hover {
+      border-color: var(--border-focus);
+      background: var(--bg-secondary);
+    }
+
+    /* Main Content Area */
+    main {
+      width: min(1500px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 14px 0 24px;
+    }
+
+    .tab-panel {
+      display: none;
+      animation: fadeIn 0.35s ease forwards;
+    }
+
+    .tab-panel.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Cards & Panels */
+    .panel {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      box-shadow: var(--panel-shadow);
+      overflow: hidden;
+      margin-bottom: 16px;
+    }
+
+    .pad {
+      padding: 12px 16px;
+    }
+
+    .section-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .section-head h2 {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      margin: 0;
+    }
+
+    .section-head small {
+      display: block;
+      color: var(--text-secondary);
+      font-size: 11px;
+      margin-top: 2px;
+    }
+
+    /* Forms & Inputs */
+    .topbar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 12px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      padding: 6px 12px;
+      border-radius: 8px;
+    }
+
+    .topbar .field {
+      flex-direction: row;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .topbar label {
+      margin-bottom: 0;
+      white-space: nowrap;
+    }
+
+    #currency { width: 45px; text-align: center; }
+    #years { width: 55px; text-align: right; }
+    #chartMode { width: 130px; }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      min-width: 0;
+    }
+
+    .field span, label {
+      color: var(--text-secondary);
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    input, select {
+      width: 100%;
+      height: 32px;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 6px 10px;
+      background: var(--input-bg);
+      color: var(--text-primary);
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 500;
+      outline: none;
+      transition: all 0.2s ease;
+    }
+
+    input:focus, select:focus {
+      border-color: var(--border-focus);
+      box-shadow: 0 0 0 3px var(--accent-glow);
+    }
+
+    /* Premium Range Slider Styling */
+    input[type="range"] {
+      -webkit-appearance: none;
+      width: 100%;
+      height: 6px;
+      border-radius: 5px;
+      background: var(--border-color);
+      outline: none;
+      padding: 0;
+      margin: 8px 0;
+      cursor: pointer;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: var(--accent-color);
+      cursor: pointer;
+      transition: transform 0.1s ease;
+    }
+
+    input[type="range"]::-webkit-slider-thumb:hover {
+      transform: scale(1.2);
+    }
+
+    input[type="range"]::-moz-range-thumb {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: var(--accent-color);
+      cursor: pointer;
+      transition: transform 0.1s ease;
+      border: none;
+    }
+
+    input[type="range"]::-moz-range-thumb:hover {
+      transform: scale(1.2);
+    }
+
+    /* Custom Switch Toggle for 'Use' checkbox */
+    .switch-cell {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 40px;
+      height: 20px;
+    }
+
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: var(--border-color);
+      transition: .2s;
+      border-radius: 20px;
+    }
+
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 14px;
+      width: 14px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: .2s;
+      border-radius: 50%;
+    }
+
+    input:checked + .slider {
+      background-color: var(--accent-color);
+    }
+
+    input:checked + .slider:before {
+      transform: translateX(20px);
+    }
+
+    /* Buttons */
+    button.btn {
+      height: 32px;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      background: var(--bg-surface);
+      color: var(--text-primary);
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      padding: 0 12px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    button.btn:hover {
+      background: var(--bg-secondary);
+      border-color: var(--border-focus);
+    }
+
+    button.btn.primary {
+      background: var(--accent-color);
+      border-color: var(--accent-color);
+      color: #ffffff;
+    }
+
+    button.btn.primary:hover {
+      background: var(--accent-hover);
+      border-color: var(--accent-hover);
+    }
+
+    button.btn.danger-outline {
+      color: var(--expense-color);
+      border-color: var(--expense-border);
+      background: transparent;
+      padding: 0 10px;
+      height: 32px;
+      border-radius: 8px;
+      font-size: 12px;
+    }
+
+    button.btn.danger-outline:hover {
+      background: var(--expense-bg);
+      border-color: var(--expense-color);
+    }
+
+    /* Layout Grids */
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+      gap: 24px;
+      align-items: start;
+    }
+
+    .stack {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .split {
+      display: grid;
+      grid-template-columns: 1fr 1.2fr;
+      gap: 20px;
+    }
+
+    /* Tables Styles */
+    .table-shell {
+      overflow-x: auto;
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      background: var(--bg-secondary);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 11.5px;
+    }
+
+    th, td {
+      padding: 4px 8px;
+      border-bottom: 1px solid var(--border-color);
+      text-align: right;
+      white-space: nowrap;
+      vertical-align: middle;
+    }
+
+    th:first-child, td:first-child {
+      text-align: left;
+    }
+
+    tr:last-child td {
+      border-bottom: 0;
+    }
+
+    th {
+      background: var(--bg-secondary);
+      color: var(--text-secondary);
+      font-size: 9px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      user-select: none;
+    }
+
+    /* Inline inputs in tables */
+    table input, table select {
+      background: transparent;
+      border: 1px solid transparent;
+      border-radius: 4px;
+      height: 22px;
+      padding: 2px 6px;
+      font-size: 11.5px;
+      font-weight: 500;
+    }
+
+    table input:hover, table select:hover {
+      border-color: var(--border-color);
+      background: var(--input-bg);
+    }
+
+    table input:focus, table select:focus {
+      border-color: var(--border-focus);
+      background: var(--input-bg);
+      box-shadow: 0 0 0 3px var(--accent-glow);
+    }
+
+    td.name-cell input { min-width: 100px; text-align: left; }
+    td.amount-cell input { min-width: 80px; font-variant-numeric: tabular-nums; }
+    td.rate-cell input { width: 50px; font-variant-numeric: tabular-nums; }
+    td.month-cell input { width: 60px; font-variant-numeric: tabular-nums; }
+
+    table button.btn.danger-outline.remove {
+      height: 22px;
+      padding: 0 6px;
+      border-radius: 4px;
+    }
+
+    /* Alert / Status Box */
+    /* Alert / Status Box */
+    .status-panel {
+      border-left: 4px solid var(--accent-color);
+      background: var(--accent-glow);
+      padding: 6px 12px;
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+      border-left-width: 4px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .status-panel .status-title {
+      font-weight: 700;
+      font-size: 13px;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .status-panel .status-title i {
+      width: 14px;
+      height: 14px;
+    }
+
+    .status-panel .status-desc {
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    .status-panel.comfortable {
+      border-left-color: var(--income-color);
+      background: var(--income-bg);
+      border-color: var(--income-border);
+    }
+    .status-panel.comfortable .status-title {
+      color: var(--income-color);
+    }
+
+    .status-panel.warning {
+      border-left-color: var(--warning-color);
+      background: var(--warning-bg);
+      border-color: var(--warning-border);
+    }
+    .status-panel.warning .status-title {
+      color: var(--warning-color);
+    }
+
+    .status-panel.danger {
+      border-left-color: var(--expense-color);
+      background: var(--expense-bg);
+      border-color: var(--expense-border);
+    }
+    .status-panel.danger .status-title {
+      color: var(--expense-color);
+    }
+
+    /* Metrics Groups Dashboard */
+    .metrics-dashboard {
+      display: grid;
+      grid-template-columns: 3fr 2fr 4fr;
+      gap: 16px;
+      margin-bottom: 16px;
+      width: 100%;
+    }
+
+    .metric-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .metric-group-header {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-secondary);
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 4px;
+      margin-bottom: 2px;
+    }
+
+    /* Metric Cards Grid */
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 10px;
+      margin-bottom: 16px;
+      width: 100%;
+    }
+
+    .metric {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 10px 12px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      overflow: hidden;
+      min-height: 76px;
+    }
+
+    .metric:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--card-shadow);
+      border-color: var(--border-focus);
+    }
+
+    .metric-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      color: var(--text-secondary);
+      margin-bottom: 8px;
+    }
+
+    .metric-head span {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .metric-head i {
+      width: 16px;
+      height: 16px;
+      color: var(--text-secondary);
+      opacity: 0.8;
+    }
+
+    .metric strong {
+      font-size: 16px;
+      font-weight: 800;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-variant-numeric: tabular-nums;
+      line-height: 1.2;
+      overflow-wrap: anywhere;
+    }
+
+    .metric small {
+      color: var(--text-secondary);
+      font-size: 11px;
+      margin-top: 4px;
+      font-weight: 400;
+    }
+
+    /* Color Coded Metric Elements */
+    /* Accent Metric (Blue/Indigo) */
+    .metric.accent-metric {
+      background: rgba(59, 130, 246, 0.04);
+      border-color: rgba(59, 130, 246, 0.15);
+    }
+    .metric.accent-metric strong,
+    .metric.accent-metric .metric-head i {
+      color: #60a5fa;
+    }
+    .metric.accent-metric:hover {
+      border-color: rgba(59, 130, 246, 0.4);
+    }
+    :root[data-theme="light"] .metric.accent-metric {
+      background: rgba(59, 130, 246, 0.06);
+      border-color: rgba(59, 130, 246, 0.15);
+    }
+    :root[data-theme="light"] .metric.accent-metric strong,
+    :root[data-theme="light"] .metric.accent-metric .metric-head i {
+      color: #2563eb;
+    }
+
+    /* Income Metric (Green/Emerald) */
+    .metric.income-metric {
+      background: rgba(16, 185, 129, 0.04);
+      border-color: rgba(16, 185, 129, 0.15);
+    }
+    .metric.income-metric strong,
+    .metric.income-metric .metric-head i {
+      color: #34d399;
+    }
+    .metric.income-metric:hover {
+      border-color: rgba(16, 185, 129, 0.4);
+    }
+    :root[data-theme="light"] .metric.income-metric {
+      background: rgba(16, 185, 129, 0.06);
+      border-color: rgba(16, 185, 129, 0.15);
+    }
+    :root[data-theme="light"] .metric.income-metric strong,
+    :root[data-theme="light"] .metric.income-metric .metric-head i {
+      color: #059669;
+    }
+
+    /* Expense Metric (Red/Rose) */
+    .metric.expense-metric {
+      background: rgba(244, 63, 94, 0.04);
+      border-color: rgba(244, 63, 94, 0.15);
+    }
+    .metric.expense-metric strong,
+    .metric.expense-metric .metric-head i {
+      color: #fb7185;
+    }
+    .metric.expense-metric:hover {
+      border-color: rgba(244, 63, 94, 0.4);
+    }
+    :root[data-theme="light"] .metric.expense-metric {
+      background: rgba(244, 63, 94, 0.06);
+      border-color: rgba(244, 63, 94, 0.15);
+    }
+    :root[data-theme="light"] .metric.expense-metric strong,
+    :root[data-theme="light"] .metric.expense-metric .metric-head i {
+      color: #e11d48;
+    }
+
+    /* Warning Metric (Amber/Yellow) */
+    .metric.warning-metric {
+      background: rgba(245, 158, 11, 0.04);
+      border-color: rgba(245, 158, 11, 0.15);
+    }
+    .metric.warning-metric strong,
+    .metric.warning-metric .metric-head i {
+      color: #fbbf24;
+    }
+    .metric.warning-metric:hover {
+      border-color: rgba(245, 158, 11, 0.4);
+    }
+    :root[data-theme="light"] .metric.warning-metric {
+      background: rgba(245, 158, 11, 0.06);
+      border-color: rgba(245, 158, 11, 0.15);
+    }
+    :root[data-theme="light"] .metric.warning-metric strong,
+    :root[data-theme="light"] .metric.warning-metric .metric-head i {
+      color: #d97706;
+    }
+
+    /* Exotic Blue Metric (Cyan/Sky-Blue) */
+    .metric.exotic-blue-metric {
+      background: rgba(6, 182, 212, 0.04);
+      border-color: rgba(6, 182, 212, 0.15);
+    }
+    .metric.exotic-blue-metric strong,
+    .metric.exotic-blue-metric .metric-head i {
+      color: #22d3ee;
+    }
+    .metric.exotic-blue-metric:hover {
+      border-color: rgba(6, 182, 212, 0.4);
+    }
+    :root[data-theme="light"] .metric.exotic-blue-metric {
+      background: rgba(6, 182, 212, 0.06);
+      border-color: rgba(6, 182, 212, 0.15);
+    }
+    :root[data-theme="light"] .metric.exotic-blue-metric strong,
+    :root[data-theme="light"] .metric.exotic-blue-metric .metric-head i {
+      color: #0891b2;
+    }
+
+    /* Chart styles */
+    .chart-card {
+      padding: 16px;
+    }
+
+    .chart-wrap {
+      height: 280px;
+      position: relative;
+      width: 100%;
+    }
+
+    /* Colors and details classes */
+    .good-text { color: var(--income-color); font-weight: 600; }
+    .bad-text { color: var(--expense-color); font-weight: 600; }
+    .muted { color: var(--text-secondary); }
+
+    /* Capital tab styles */
+    .capital-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .capital-inputs {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    /* Responsiveness */
+    @media (max-width: 1200px) {
+      .layout { grid-template-columns: 1fr; }
+      .metrics-dashboard { grid-template-columns: 1fr; gap: 14px; }
+    }
+
+    @media (max-width: 768px) {
+      header.main-header {
+        height: auto;
+        flex-direction: column;
+        padding: 12px 16px;
+        gap: 12px;
+        position: relative;
+      }
+      body { padding-top: 0; }
+      .header-actions { width: 100%; justify-content: space-between; }
+      .tabs { width: 100%; justify-content: center; }
+      .split { grid-template-columns: 1fr; }
+      .chart-wrap { height: 280px; }
+    }
+
+    /* Print Styles */
+    @media print {
+      body {
+        background: #ffffff;
+        color: #000000;
+        padding-top: 0;
+      }
+      header.main-header, button, .actions, .header-actions, .topbar button {
+        display: none !important;
+      }
+      .panel {
+        border: 1px solid #000000 !important;
+        box-shadow: none !important;
+        page-break-inside: avoid;
+      }
+      .table-shell {
+        border: 1px solid #000000 !important;
+      }
+      table input, table select {
+        border: none !important;
+        background: transparent !important;
+        color: #000000 !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Sticky Navbar Header -->
+  <header class="main-header">
+    <div class="brand">
+      <div class="brand-icon">
+        <i data-lucide="wallet"></i>
+      </div>
+      <h1>Income vs Expenses Planner</h1>
+    </div>
+
+    <div class="tabs">
+      <button class="tab-button active" type="button" data-tab="dashboardTab">
+        <i data-lucide="layout-dashboard"></i>Dashboard
+      </button>
+      <button class="tab-button" type="button" data-tab="capitalTab">
+        <i data-lucide="banknote"></i>Capital Need
+      </button>
+      <button class="tab-button" type="button" data-tab="affordTab">
+        <i data-lucide="trending-up"></i>Affordable Spend
+      </button>
+    </div>
+
+    <div class="header-actions">
+      <!-- Theme Switcher -->
+      <button id="themeToggleBtn" class="btn-icon" title="Toggle Theme" type="button">
+        <i data-lucide="sun" id="themeSunIcon" style="display: none;"></i>
+        <i data-lucide="moon" id="themeMoonIcon"></i>
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Content Panels -->
+  <main>
+    
+    <!-- Tab 1: Dashboard -->
+    <section id="dashboardTab" class="tab-panel active">
+      <!-- Metrics Dashboard Groups -->
+      <div class="metrics-dashboard">
+        <!-- Group 1: Flows & Rates -->
+        <div class="metric-group">
+          <div class="metric-group-header">Running Flows</div>
+          <div class="metrics">
+            <div class="metric expense-metric">
+              <div class="metric-head"><span>Expense 24h</span><i data-lucide="receipt"></i></div>
+              <strong id="liveExpense24h">-</strong>
+              <small>Mo: <span id="staticMonthlyExpense2">-</span></small>
+            </div>
+            <div class="metric income-metric">
+              <div class="metric-head"><span>Return 24h</span><i data-lucide="trending-up"></i></div>
+              <strong id="liveReturn24h">-</strong>
+              <small>Mo: <span id="staticMonthlyReturn2">-</span></small>
+            </div>
+            <div class="metric exotic-blue-metric">
+              <div class="metric-head"><span>Return to Expense</span><i data-lucide="percent"></i></div>
+              <strong id="liveExpenseToReturnPct">-</strong>
+              <small>Ret: <span id="staticMonthlyReturn">-</span> / Exp: <span id="staticMonthlyExpense">-</span></small>
+            </div>
+          </div>
+        </div>
+
+        <!-- Group 2: Deficits & Gaps -->
+        <div class="metric-group">
+          <div class="metric-group-header">Needs & Gaps</div>
+          <div class="metrics">
+            <div class="metric expense-metric">
+              <div class="metric-head"><span>Required Corpus</span><i data-lucide="activity"></i></div>
+              <strong id="requiredCorpus">-</strong>
+              <small>PV of future gaps</small>
+            </div>
+            <div class="metric warning-metric">
+              <div class="metric-head"><span>First Gap</span><i data-lucide="alert-circle"></i></div>
+              <strong id="firstGap">-</strong>
+              <small>Income shortfall starts</small>
+            </div>
+          </div>
+        </div>
+
+        <!-- Group 3: Portfolio Status -->
+        <div class="metric-group">
+          <div class="metric-group-header">Portfolio Status</div>
+          <div class="metrics">
+            <div class="metric accent-metric">
+              <div class="metric-head"><span>Total Assets</span><i data-lucide="database"></i></div>
+              <strong id="totalAssets">-</strong>
+              <small>Current net value</small>
+            </div>
+            <div class="metric income-metric">
+              <div class="metric-head"><span>Spendable Assets</span><i data-lucide="shield-check"></i></div>
+              <strong id="liquidAssets">-</strong>
+              <small>Assets marked Use</small>
+            </div>
+            <div class="metric warning-metric">
+              <div class="metric-head"><span>Wt. Return</span><i data-lucide="percent"></i></div>
+              <strong id="weightedReturn">-</strong>
+              <small>Spendable return</small>
+            </div>
+            <div class="metric accent-metric">
+              <div class="metric-head"><span>Final Assets</span><i data-lucide="flag"></i></div>
+              <strong id="finalAssets">-</strong>
+              <small>After returns & gaps</small>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Status Banner -->
+      <div id="status" class="status-panel">
+        <span class="status-title"><i data-lucide="info"></i>Projection ready:</span>
+        <span class="status-desc">Adjust assumptions to see whether income and spendable assets cover expenses.</span>
+      </div>
+
+      <!-- Controls Topbar -->
+      <div class="topbar">
+        <div class="field">
+          <label for="currency">Currency</label>
+          <input id="currency" type="text" maxlength="4" value="₹">
+        </div>
+        <div class="field">
+          <label for="years">Projection years</label>
+          <input id="years" type="number" min="1" max="60" step="1" value="25">
+        </div>
+        <div class="field">
+          <label for="chartMode">Chart view</label>
+          <select id="chartMode">
+            <option value="yearly">Yearly totals</option>
+            <option value="monthly">Monthly run rate</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="layout">
+        <!-- Left Column: Visualizations & Detailed Projection -->
+        <div class="stack">
+          <!-- Chart Card -->
+          <div class="panel chart-card">
+            <div class="section-head" style="margin-bottom: 12px;">
+              <div>
+                <h2>Projection Chart</h2>
+                <small id="chartNote">Yearly totals</small>
+              </div>
+            </div>
+            <div class="chart-wrap">
+              <canvas id="projectionChart"></canvas>
+            </div>
+          </div>
+
+          <!-- Yearly Projection Table -->
+          <div class="panel pad">
+            <div class="section-head">
+              <h2>Yearly Projection</h2>
+              <button id="exportCsvDashboard" class="btn" style="height: 28px; padding: 0 8px; font-size: 11px;" type="button">
+                <i data-lucide="download" style="width: 12px; height: 12px;"></i> CSV
+              </button>
+            </div>
+            <div class="table-shell" style="max-height: 280px; overflow-y: auto;">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Year</th>
+                    <th>Income</th>
+                    <th>Expenses</th>
+                    <th>Gap</th>
+                    <th>Spendable</th>
+                    <th>Total</th>
+                  </tr>
+                </thead>
+                <tbody id="projectionRows"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Column: Setup Inputs & Summary -->
+        <div class="stack">
+          <!-- Investment Buckets -->
+          <div class="panel pad">
+            <div class="section-head">
+              <div>
+                <h2>Investment Buckets</h2>
+                <small>Return is yearly. Switch 'Use' to fund gaps.</small>
+              </div>
+              <button id="addBucket" class="btn" type="button">
+                <i data-lucide="plus"></i>Bucket
+              </button>
+            </div>
+
+            <!-- Monthly Expenses Inline Configuration -->
+            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 12px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">
+              <div class="field">
+                <label for="monthlyExpenses">Monthly Expenses</label>
+                <input id="monthlyExpenses" type="number" min="0" step="1000" value="80000">
+              </div>
+              <div class="field">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <label for="expenseEscalation">Escalation %</label>
+                  <input id="expenseEscalation" type="number" min="4" max="15" step="1" value="8" style="width: 45px; height: 20px; padding: 2px 4px; font-size: 11px; text-align: right;">
+                </div>
+                <input id="expenseEscalationSlider" type="range" min="4" max="15" step="1" value="8" style="height: 14px; margin-top: 4px;">
+              </div>
+            </div>
+
+            <div class="table-shell">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Bucket</th>
+                    <th>Start mo.</th>
+                    <th>Current value</th>
+                    <th>Return %</th>
+                    <th style="text-align: center; width: 60px;">Use</th>
+                    <th style="width: 50px;"></th>
+                  </tr>
+                </thead>
+                <tbody id="bucketRows"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Income Streams -->
+          <div class="panel pad">
+            <div class="section-head">
+              <div>
+                <h2>Income Streams</h2>
+                <small>Amounts stay flat within a year and increment on anniversaries.</small>
+              </div>
+              <button id="addStream" class="btn" type="button">
+                <i data-lucide="plus"></i>Stream
+              </button>
+            </div>
+            <div class="table-shell">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Monthly</th>
+                    <th>Start mo.</th>
+                    <th>End mo.</th>
+                    <th>Growth %</th>
+                    <th style="width: 50px;"></th>
+                  </tr>
+                </thead>
+                <tbody id="streamRows"></tbody>
+              </table>
+            </div>
+            <div class="actions" style="display: flex; justify-content: flex-end; margin-top: 16px;">
+              <button id="recalculate" class="btn primary" type="button">
+                <i data-lucide="refresh-cw"></i>Update Projection
+              </button>
+            </div>
+          </div>
+
+          <!-- Final Buckets Summary -->
+          <div class="panel pad">
+            <div class="section-head">
+              <h2>Final Buckets</h2>
+            </div>
+            <div class="table-shell">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Bucket</th>
+                    <th>Final</th>
+                    <th style="text-align: center; width: 60px;">Use</th>
+                  </tr>
+                </thead>
+                <tbody id="bucketSummaryRows"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Tab 2: Capital Need -->
+    <section id="capitalTab" class="tab-panel">
+      <div class="capital-grid">
+        <div class="panel pad">
+          <div class="section-head">
+            <div>
+              <h2>Capital Need Calculator</h2>
+              <small>Find the starting corpus needed for an escalating monthly draw and target ending capital.</small>
+            </div>
+            <button id="capitalRecalculate" class="btn primary" type="button">
+              <i data-lucide="calculator"></i>Calculate
+            </button>
+          </div>
+          <div class="capital-inputs">
+            <div class="field">
+              <label for="capitalMonthlyNeed">Monthly need</label>
+              <input id="capitalMonthlyNeed" type="number" min="0" step="1000" value="50000">
+            </div>
+            <div class="field">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <label for="capitalEscalation">Escalation %</label>
+                <input id="capitalEscalation" type="number" min="4" max="15" step="1" value="8" style="width: 65px; height: 26px; padding: 2px 6px; font-size: 12px; text-align: right;">
+              </div>
+              <input id="capitalEscalationSlider" type="range" min="4" max="15" step="1" value="8" style="height: 20px; margin-top: 4px;">
+            </div>
+            <div class="field">
+              <label for="capitalYears">Years</label>
+              <input id="capitalYears" type="number" min="1" max="80" step="1" value="25">
+            </div>
+            <div class="field">
+              <label for="capitalReturn">Return %</label>
+              <input id="capitalReturn" type="number" step="0.1" value="8">
+            </div>
+            <div class="field">
+              <label for="capitalEndValue">End capital</label>
+              <input id="capitalEndValue" type="number" min="0" step="1000" value="0">
+            </div>
+            <div class="field">
+              <label for="capitalTableMode">Table view</label>
+              <select id="capitalTableMode">
+                <option value="yearly">Yearly</option>
+                <option value="monthly">Monthly</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="metrics">
+          <div class="metric income-metric">
+            <div class="metric-head"><span>Initial Capital Needed</span><i data-lucide="key-round"></i></div>
+            <strong id="capitalRequired">-</strong>
+            <small>Starting corpus today</small>
+          </div>
+          <div class="metric expense-metric">
+            <div class="metric-head"><span>Total Expenses</span><i data-lucide="trending-down"></i></div>
+            <strong id="capitalTotalExpenses">-</strong>
+            <small>Nominal draw over period</small>
+          </div>
+          <div class="metric income-metric">
+            <div class="metric-head"><span>Total Returns</span><i data-lucide="trending-up"></i></div>
+            <strong id="capitalTotalReturns">-</strong>
+            <small>Returns generated</small>
+          </div>
+          <div class="metric accent-metric">
+            <div class="metric-head"><span>Final Capital</span><i data-lucide="award"></i></div>
+            <strong id="capitalFinal">-</strong>
+            <small>Ending target value</small>
+          </div>
+        </div>
+
+        <div class="panel pad">
+          <div class="section-head">
+            <h2>Drawdown Table</h2>
+            <button id="exportCsvCapital" class="btn" style="height: 28px; padding: 0 8px; font-size: 11px;" type="button">
+              <i data-lucide="download" style="width: 12px; height: 12px;"></i> CSV
+            </button>
+          </div>
+          <div class="table-shell" style="max-height: 400px; overflow-y: auto;">
+            <table>
+              <thead>
+                <tr>
+                  <th>Period</th>
+                  <th>Opening</th>
+                  <th>Return</th>
+                  <th>Expense</th>
+                  <th>Closing</th>
+                </tr>
+              </thead>
+              <tbody id="capitalRows"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Tab 3: Affordable Spend -->
+    <section id="affordTab" class="tab-panel">
+      <div class="capital-grid">
+        <div class="panel pad">
+          <div class="section-head">
+            <div>
+              <h2>Affordable Monthly Expense</h2>
+              <small>Find the starting monthly expense your capital and planned income can support.</small>
+            </div>
+            <button id="affordRecalculate" class="btn primary" type="button">
+              <i data-lucide="calculator"></i>Calculate
+            </button>
+          </div>
+          <div class="capital-inputs">
+            <div class="field">
+              <label for="affordCurrentCapital">Current capital</label>
+              <input id="affordCurrentCapital" type="number" min="0" step="1000" value="3000000">
+            </div>
+            <div class="field">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <label for="affordReturn">Return %</label>
+                <input id="affordReturn" type="number" min="4" max="15" step="1" value="6" style="width: 65px; height: 26px; padding: 2px 6px; font-size: 12px; text-align: right;">
+              </div>
+              <input id="affordReturnSlider" type="range" min="4" max="15" step="1" value="6" style="height: 20px; margin-top: 4px;">
+            </div>
+            <div class="field">
+              <label for="affordEscalation">Expense escalation %</label>
+              <input id="affordEscalation" type="number" step="0.1" value="8">
+            </div>
+            <div class="field">
+              <label for="affordYears">Total years</label>
+              <input id="affordYears" type="number" min="1" max="80" step="1" value="25">
+            </div>
+            <div class="field">
+              <label for="affordEndValue">Final capital wanted</label>
+              <input id="affordEndValue" type="number" min="0" step="1000" value="0">
+            </div>
+            <div class="field">
+              <label for="affordTableMode">Table view</label>
+              <select id="affordTableMode">
+                <option value="yearly">Yearly</option>
+                <option value="monthly">Monthly</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="metrics">
+          <div class="metric income-metric">
+            <div class="metric-head"><span>Affordable Monthly Spend</span><i data-lucide="sparkles"></i></div>
+            <strong id="affordMonthlyExpense">-</strong>
+            <small>Starting month amount</small>
+          </div>
+          <div class="metric accent-metric">
+            <div class="metric-head"><span>Year 1 Total Expense</span><i data-lucide="calendar"></i></div>
+            <strong id="affordYearOneExpense">-</strong>
+            <small>Annual draw in year 1</small>
+          </div>
+          <div class="metric income-metric">
+            <div class="metric-head"><span>Total Income</span><i data-lucide="wallet"></i></div>
+            <strong id="affordTotalIncome">-</strong>
+            <small>Nominal inflows total</small>
+          </div>
+          <div class="metric warning-metric">
+            <div class="metric-head"><span>Final Capital</span><i data-lucide="shield"></i></div>
+            <strong id="affordFinalCapital">-</strong>
+            <small>Projected ending value</small>
+          </div>
+        </div>
+
+        <div class="split">
+          <div class="panel pad">
+            <div class="section-head">
+              <div>
+                <h2>Likely Income Streams</h2>
+                <small>Monthly salary/income, duration in years, and yearly increment.</small>
+              </div>
+              <button id="addAffordIncomeStream" class="btn" type="button">
+                <i data-lucide="plus"></i>Stream
+              </button>
+            </div>
+            <div class="table-shell">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Monthly</th>
+                    <th style="width: 80px;">Years</th>
+                    <th style="width: 80px;">Growth %</th>
+                    <th style="width: 50px;"></th>
+                  </tr>
+                </thead>
+                <tbody id="affordIncomeRows"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="panel pad">
+            <div class="section-head">
+              <div>
+                <h2>One-Off Money</h2>
+                <small>Lump sums added at the end of a specific year.</small>
+              </div>
+              <button id="addAffordOneOff" class="btn" type="button">
+                <i data-lucide="plus"></i>One-off
+              </button>
+            </div>
+            <div class="table-shell">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Label</th>
+                    <th style="width: 100px;">End year</th>
+                    <th>Amount</th>
+                    <th style="width: 50px;"></th>
+                  </tr>
+                </thead>
+                <tbody id="affordOneOffRows"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel pad">
+          <div class="section-head">
+            <h2>Affordability Table</h2>
+            <button id="exportCsvAfford" class="btn" style="height: 28px; padding: 0 8px; font-size: 11px;" type="button">
+              <i data-lucide="download" style="width: 12px; height: 12px;"></i> CSV
+            </button>
+          </div>
+          <div class="table-shell" style="max-height: 400px; overflow-y: auto;">
+            <table>
+              <thead>
+                <tr>
+                  <th>Period</th>
+                  <th>Opening</th>
+                  <th>Income</th>
+                  <th>Return</th>
+                  <th>Expense</th>
+                  <th>Closing</th>
+                </tr>
+              </thead>
+              <tbody id="affordRows"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Row Templates -->
+  <template id="bucketTemplate">
+    <tr>
+      <td class="name-cell"><input class="bucket-name" type="text" placeholder="Bucket Name"></td>
+      <td class="month-cell"><input class="bucket-start" type="number" min="0" step="1" value="0"></td>
+      <td class="amount-cell"><input class="bucket-value" type="number" min="0" step="1000"></td>
+      <td class="rate-cell"><input class="bucket-return" type="number" step="0.1"></td>
+      <td class="switch-cell">
+        <label class="switch">
+          <input class="bucket-liquid" type="checkbox">
+          <span class="slider"></span>
+        </label>
+      </td>
+      <td>
+        <button class="btn danger-outline remove" type="button">
+          <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i>
+        </button>
+      </td>
+    </tr>
+  </template>
+
+  <template id="streamTemplate">
+    <tr>
+      <td class="name-cell"><input class="stream-name" type="text" placeholder="Income Stream"></td>
+      <td class="amount-cell"><input class="stream-amount" type="number" min="0" step="1000"></td>
+      <td class="month-cell"><input class="stream-start" type="number" min="0" step="1"></td>
+      <td class="month-cell"><input class="stream-end" type="number" min="0" step="1" placeholder="Optional (∞)"></td>
+      <td class="rate-cell"><input class="stream-growth" type="number" step="0.1"></td>
+      <td>
+        <button class="btn danger-outline remove" type="button">
+          <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i>
+        </button>
+      </td>
+    </tr>
+  </template>
+
+  <template id="affordIncomeTemplate">
+    <tr>
+      <td class="name-cell"><input class="afford-income-name" type="text" placeholder="Income Name"></td>
+      <td class="amount-cell"><input class="afford-income-amount" type="number" min="0" step="1000"></td>
+      <td class="month-cell"><input class="afford-income-years" type="number" min="1" step="1"></td>
+      <td class="rate-cell"><input class="afford-income-growth" type="number" step="0.1"></td>
+      <td>
+        <button class="btn danger-outline remove" type="button">
+          <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i>
+        </button>
+      </td>
+    </tr>
+  </template>
+
+  <template id="affordOneOffTemplate">
+    <tr>
+      <td class="name-cell"><input class="afford-oneoff-name" type="text" placeholder="Lump Sum Name"></td>
+      <td class="month-cell"><input class="afford-oneoff-year" type="number" min="1" step="1"></td>
+      <td class="amount-cell"><input class="afford-oneoff-amount" type="number" min="0" step="1000"></td>
+      <td>
+        <button class="btn danger-outline remove" type="button">
+          <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i>
+        </button>
+      </td>
+    </tr>
+  </template>
+
+  <!-- Script Logic -->
+  <script>
+    // Elements mapping
+    const els = {
+      currency: document.getElementById("currency"),
+      years: document.getElementById("years"),
+      monthlyExpenses: document.getElementById("monthlyExpenses"),
+      expenseEscalation: document.getElementById("expenseEscalation"),
+      expenseEscalationSlider: document.getElementById("expenseEscalationSlider"),
+      chartMode: document.getElementById("chartMode"),
+      bucketRows: document.getElementById("bucketRows"),
+      streamRows: document.getElementById("streamRows"),
+      addBucket: document.getElementById("addBucket"),
+      addStream: document.getElementById("addStream"),
+      recalculate: document.getElementById("recalculate"),
+      status: document.getElementById("status"),
+      totalAssets: document.getElementById("totalAssets"),
+      liquidAssets: document.getElementById("liquidAssets"),
+      weightedReturn: document.getElementById("weightedReturn"),
+      requiredCorpus: document.getElementById("requiredCorpus"),
+      firstGap: document.getElementById("firstGap"),
+      finalAssets: document.getElementById("finalAssets"),
+      liveReturn24h: document.getElementById("liveReturn24h"),
+      liveExpense24h: document.getElementById("liveExpense24h"),
+      liveExpenseToReturnPct: document.getElementById("liveExpenseToReturnPct"),
+      staticMonthlyReturn: document.getElementById("staticMonthlyReturn"),
+      staticMonthlyExpense: document.getElementById("staticMonthlyExpense"),
+      staticMonthlyReturn2: document.getElementById("staticMonthlyReturn2"),
+      staticMonthlyExpense2: document.getElementById("staticMonthlyExpense2"),
+      chartNote: document.getElementById("chartNote"),
+      projectionRows: document.getElementById("projectionRows"),
+      bucketSummaryRows: document.getElementById("bucketSummaryRows"),
+      bucketTemplate: document.getElementById("bucketTemplate"),
+      streamTemplate: document.getElementById("streamTemplate"),
+      canvas: document.getElementById("projectionChart"),
+      
+      capitalMonthlyNeed: document.getElementById("capitalMonthlyNeed"),
+      capitalEscalation: document.getElementById("capitalEscalation"),
+      capitalEscalationSlider: document.getElementById("capitalEscalationSlider"),
+      capitalYears: document.getElementById("capitalYears"),
+      capitalReturn: document.getElementById("capitalReturn"),
+      capitalEndValue: document.getElementById("capitalEndValue"),
+      capitalTableMode: document.getElementById("capitalTableMode"),
+      capitalRecalculate: document.getElementById("capitalRecalculate"),
+      capitalRequired: document.getElementById("capitalRequired"),
+      capitalTotalExpenses: document.getElementById("capitalTotalExpenses"),
+      capitalTotalReturns: document.getElementById("capitalTotalReturns"),
+      capitalFinal: document.getElementById("capitalFinal"),
+      capitalRows: document.getElementById("capitalRows"),
+      
+      affordCurrentCapital: document.getElementById("affordCurrentCapital"),
+      affordReturn: document.getElementById("affordReturn"),
+      affordReturnSlider: document.getElementById("affordReturnSlider"),
+      affordEscalation: document.getElementById("affordEscalation"),
+      affordYears: document.getElementById("affordYears"),
+      affordEndValue: document.getElementById("affordEndValue"),
+      affordTableMode: document.getElementById("affordTableMode"),
+      affordRecalculate: document.getElementById("affordRecalculate"),
+      addAffordIncomeStream: document.getElementById("addAffordIncomeStream"),
+      addAffordOneOff: document.getElementById("addAffordOneOff"),
+      affordIncomeRows: document.getElementById("affordIncomeRows"),
+      affordOneOffRows: document.getElementById("affordOneOffRows"),
+      affordIncomeTemplate: document.getElementById("affordIncomeTemplate"),
+      affordOneOffTemplate: document.getElementById("affordOneOffTemplate"),
+      affordMonthlyExpense: document.getElementById("affordMonthlyExpense"),
+      affordYearOneExpense: document.getElementById("affordYearOneExpense"),
+      affordTotalIncome: document.getElementById("affordTotalIncome"),
+      affordFinalCapital: document.getElementById("affordFinalCapital"),
+      affordRows: document.getElementById("affordRows"),
+      
+      themeToggleBtn: document.getElementById("themeToggleBtn"),
+      themeSunIcon: document.getElementById("themeSunIcon"),
+      themeMoonIcon: document.getElementById("themeMoonIcon"),
+      
+      exportCsvDashboard: document.getElementById("exportCsvDashboard"),
+      exportCsvCapital: document.getElementById("exportCsvCapital"),
+      exportCsvAfford: document.getElementById("exportCsvAfford"),
+    };
+
+    let lastProjection = [];
+    let lastBuckets = [];
+    let chartInstance = null;
+
+    // Numerical Parser
+    function numberFrom(input) {
+      const value = Number(input.value);
+      return Number.isFinite(value) ? value : 0;
+    }
+
+    // Money Formatter (Indian system Lakh / Crore support)
+    function formatMoney(value, compact = true) {
+      const currency = els.currency.value || "";
+      const abs = Math.abs(value);
+      let display = value;
+      let suffix = "";
+      
+      if (compact && abs >= 10000000) {
+        display = value / 10000000;
+        suffix = " Cr";
+      } else if (compact && abs >= 100000) {
+        display = value / 100000;
+        suffix = " L";
+      }
+      
+      return currency + display.toLocaleString("en-IN", { 
+        maximumFractionDigits: suffix ? 2 : 0,
+        minimumFractionDigits: 0
+      }) + suffix;
+    }
+
+    // Percentage formatter
+    function pct(value) {
+      return `${(value * 100).toFixed(2)}%`;
+    }
+
+    // Add row helper for investment buckets
+    function addBucketRow(data = {}) {
+      const row = els.bucketTemplate.content.firstElementChild.cloneNode(true);
+      row.querySelector(".bucket-name").value = data.name ?? "Bucket";
+      row.querySelector(".bucket-start").value = data.start ?? 0;
+      row.querySelector(".bucket-value").value = data.value ?? 0;
+      row.querySelector(".bucket-return").value = data.returnRate ?? 0;
+      row.querySelector(".bucket-liquid").checked = data.liquid ?? true;
+      
+      row.querySelector(".remove").addEventListener("click", () => {
+        row.remove();
+        calculate();
+      });
+      row.querySelectorAll("input").forEach(input => input.addEventListener("input", calculate));
+      els.bucketRows.appendChild(row);
+      lucide.createIcons();
+    }
+
+    // Add row helper for income streams
+    function addStreamRow(data = {}) {
+      const row = els.streamTemplate.content.firstElementChild.cloneNode(true);
+      row.querySelector(".stream-name").value = data.name ?? "Income";
+      row.querySelector(".stream-amount").value = data.amount ?? 0;
+      row.querySelector(".stream-start").value = data.start ?? 0;
+      row.querySelector(".stream-end").value = data.end ?? "";
+      row.querySelector(".stream-growth").value = data.growth ?? 0;
+      
+      row.querySelector(".remove").addEventListener("click", () => {
+        row.remove();
+        calculate();
+      });
+      row.querySelectorAll("input").forEach(input => input.addEventListener("input", calculate));
+      els.streamRows.appendChild(row);
+      lucide.createIcons();
+    }
+
+    // Data Collection Helpers
+    function collectBuckets() {
+      return [...els.bucketRows.querySelectorAll("tr")].map(row => ({
+        name: row.querySelector(".bucket-name").value.trim() || "Bucket",
+        initialValue: Math.max(0, numberFrom(row.querySelector(".bucket-value"))),
+        start: Math.max(0, Math.floor(numberFrom(row.querySelector(".bucket-start")))),
+        annualReturn: numberFrom(row.querySelector(".bucket-return")) / 100,
+        liquid: row.querySelector(".bucket-liquid").checked,
+      }));
+    }
+
+    // Dynamic stream collect
+    function collectStreams() {
+      return [...els.streamRows.querySelectorAll("tr")].map(row => ({
+        name: row.querySelector(".stream-name").value.trim() || "Income",
+        amount: Math.max(0, numberFrom(row.querySelector(".stream-amount"))),
+        start: Math.max(0, Math.floor(numberFrom(row.querySelector(".stream-start")))),
+        end: row.querySelector(".stream-end").value === "" ? Infinity : Math.max(0, Math.floor(numberFrom(row.querySelector(".stream-end")))),
+        growth: numberFrom(row.querySelector(".stream-growth")) / 100,
+      }));
+    }
+
+    // Calculate income for a single month
+    function incomeForMonth(streams, month) {
+      return streams.reduce((total, stream) => {
+        if (month < stream.start || month > stream.end) return total;
+        const yearsSinceStart = Math.max(0, Math.floor((month - stream.start) / 12));
+        return total + stream.amount * Math.pow(1 + stream.growth, yearsSinceStart);
+      }, 0);
+    }
+
+    // Calculate asset value totals and returns
+    function totals(buckets) {
+      const total = buckets.reduce((sum, bucket) => sum + bucket.value, 0);
+      const liquid = buckets.filter(bucket => bucket.liquid).reduce((sum, bucket) => sum + bucket.value, 0);
+      const weightedLiquidReturn = liquid > 0
+        ? buckets.filter(bucket => bucket.liquid).reduce((sum, bucket) => sum + bucket.value * bucket.annualReturn, 0) / liquid
+        : (total > 0 ? buckets.reduce((sum, bucket) => sum + bucket.value * bucket.annualReturn, 0) / total : 0);
+      return { total, liquid, weightedLiquidReturn };
+    }
+
+    // Draw down logic from buckets to cover a gap
+    function applyGapToBuckets(buckets, gap) {
+      let remaining = gap;
+      const liquidBuckets = buckets.filter(bucket => bucket.liquid && bucket.value > 0);
+      const liquidTotal = liquidBuckets.reduce((sum, bucket) => sum + bucket.value, 0);
+      
+      const drawBuckets = liquidTotal > 0 ? liquidBuckets : buckets.filter(bucket => bucket.value > 0);
+      const drawTotal = drawBuckets.reduce((sum, bucket) => sum + bucket.value, 0);
+      
+      if (drawTotal <= 0) return gap;
+
+      drawBuckets.forEach(bucket => {
+        const draw = Math.min(bucket.value, gap * (bucket.value / drawTotal));
+        bucket.value -= draw;
+        remaining -= draw;
+      });
+      return Math.max(0, remaining);
+    }
+
+    // Add surplus to investment buckets
+    function addSurplusToBuckets(buckets, surplus) {
+      const activeBuckets = buckets.filter(bucket => bucket.activated);
+      const target = activeBuckets.find(bucket => bucket.liquid && /fd|cash|saving/i.test(bucket.name))
+        || activeBuckets.find(bucket => bucket.liquid)
+        || activeBuckets[0]
+        || buckets[0];
+      if (target) {
+        target.activated = true;
+        target.value += surplus;
+      }
+    }
+
+    // Main Calculator function
+    function calculate() {
+      const months = Math.max(12, Math.floor(numberFrom(els.years) * 12));
+      const expenseEscalationYearly = numberFrom(els.expenseEscalation) / 100;
+      const baseExpense = Math.max(0, numberFrom(els.monthlyExpenses));
+      const streams = collectStreams();
+      const buckets = collectBuckets().map(bucket => ({
+        ...bucket,
+        value: bucket.start === 0 ? bucket.initialValue : 0,
+        activated: bucket.start === 0,
+      }));
+      
+      const opening = totals(buckets);
+      const monthlyDiscount = Math.pow(1 + opening.weightedLiquidReturn, 1 / 12) - 1;
+      const yearly = [];
+      let requiredToday = 0;
+      let runningDiscountedDeficit = 0;
+      let firstGapMonth = null;
+
+      for (let month = 0; month < months; month++) {
+        const yearIndex = Math.floor(month / 12);
+        const expense = baseExpense * Math.pow(1 + expenseEscalationYearly, yearIndex);
+        const income = incomeForMonth(streams, month);
+        const gap = income - expense;
+
+        buckets.forEach(bucket => {
+          if (!bucket.activated && month >= bucket.start) {
+            bucket.value += bucket.initialValue;
+            bucket.activated = true;
+          }
+          if (bucket.activated) {
+            bucket.value *= 1 + (Math.pow(1 + bucket.annualReturn, 1 / 12) - 1);
+          }
+        });
+
+        const discountedNetGap = gap / Math.pow(1 + monthlyDiscount, month + 1);
+        runningDiscountedDeficit -= discountedNetGap;
+        requiredToday = Math.max(requiredToday, runningDiscountedDeficit);
+
+        if (gap >= 0) {
+          addSurplusToBuckets(buckets, gap);
+        } else {
+          if (firstGapMonth === null) firstGapMonth = month;
+          applyGapToBuckets(buckets, Math.abs(gap));
+        }
+
+        const current = totals(buckets);
+        if (!yearly[yearIndex]) {
+          yearly[yearIndex] = { year: yearIndex + 1, income: 0, expenses: 0, surplus: 0, total: 0, liquid: 0 };
+        }
+        yearly[yearIndex].income += income;
+        yearly[yearIndex].expenses += expense;
+        yearly[yearIndex].surplus += gap;
+        yearly[yearIndex].total = current.total;
+        yearly[yearIndex].liquid = current.liquid;
+      }
+
+      lastProjection = yearly;
+      lastBuckets = buckets;
+      renderMetrics(opening, yearly, firstGapMonth, requiredToday);
+      renderChart();
+      renderTables(yearly, buckets);
+
+      startLiveTicker(opening.liquid, opening.weightedLiquidReturn, baseExpense, requiredToday, streams);
+      saveConfig();
+    }
+
+    let liveTickerInterval = null;
+
+    function startLiveTicker(liquidAssets, weightedReturnRate, baseExpense, requiredToday, streams) {
+      if (liveTickerInterval) {
+        clearInterval(liveTickerInterval);
+      }
+
+      const currency = els.currency.value || "";
+      const monthlyIncome = incomeForMonth(streams, 0);
+
+      const returnRatePerSec = (liquidAssets * weightedReturnRate) / (365 * 24 * 3600);
+      const expenseRatePerSec = (baseExpense * 12) / (365 * 24 * 3600);
+      const incomeRatePerSec = (monthlyIncome * 12) / (365 * 24 * 3600);
+
+      // Update static KPI values once
+      const monthlyReturn = (liquidAssets * weightedReturnRate) / 12;
+      const monthlyExpense = baseExpense;
+      const returnToExpensePct = monthlyExpense > 0 ? (monthlyReturn / monthlyExpense) * 100 : 0;
+
+      if (els.staticMonthlyReturn) els.staticMonthlyReturn.textContent = formatMoney(monthlyReturn, false);
+      if (els.staticMonthlyExpense) els.staticMonthlyExpense.textContent = formatMoney(monthlyExpense, false);
+      if (els.staticMonthlyReturn2) els.staticMonthlyReturn2.textContent = formatMoney(monthlyReturn, false);
+      if (els.staticMonthlyExpense2) els.staticMonthlyExpense2.textContent = formatMoney(monthlyExpense, false);
+      if (els.liveExpenseToReturnPct) {
+        els.liveExpenseToReturnPct.textContent = monthlyExpense > 0 ? `${returnToExpensePct.toFixed(1)}%` : "0.0%";
+      }
+
+      function update() {
+        const now = new Date();
+        const hours = now.getHours();
+        const minutes = now.getMinutes();
+        const seconds = now.getSeconds();
+        const ms = now.getMilliseconds();
+
+        const secondsSinceMidnight = hours * 3600 + minutes * 60 + seconds + ms / 1000;
+
+        const liveReturn24h = secondsSinceMidnight * returnRatePerSec;
+        const liveExpense24h = secondsSinceMidnight * expenseRatePerSec;
+
+        const formatLive = (val) => {
+          return currency + val.toLocaleString("en-IN", {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+          });
+        };
+
+        if (els.liveReturn24h) els.liveReturn24h.textContent = formatLive(liveReturn24h);
+        if (els.liveExpense24h) els.liveExpense24h.textContent = formatLive(liveExpense24h);
+      }
+
+      update();
+      liveTickerInterval = setInterval(update, 100);
+    }
+
+    // Render Metric displays & Alert box
+    function renderMetrics(opening, yearly, firstGapMonth, requiredToday) {
+      const final = yearly[yearly.length - 1] || { income: 0, expenses: 0, total: 0, liquid: 0 };
+      const coverage = final.expenses > 0 ? final.income / final.expenses : 0;
+
+      els.totalAssets.textContent = formatMoney(opening.total);
+      els.liquidAssets.textContent = formatMoney(opening.liquid);
+      els.weightedReturn.textContent = pct(opening.weightedLiquidReturn);
+      els.requiredCorpus.textContent = formatMoney(requiredToday);
+      els.firstGap.textContent = firstGapMonth === null ? "No gap" : `Month ${firstGapMonth + 1}`;
+      els.finalAssets.textContent = formatMoney(final.total);
+
+      // Status Styling
+      els.status.className = "status-panel";
+      if (firstGapMonth === null) {
+        els.status.classList.add("comfortable");
+        els.status.innerHTML = `<span class="status-title"><i data-lucide="check-circle"></i>Looks comfortable:</span> <span class="status-desc">Income covers expenses throughout this projection. Surpluses are reinvested.</span>`;
+      } else if (final.liquid >= 0 && opening.liquid >= requiredToday) {
+        els.status.classList.add("warning");
+        els.status.innerHTML = `<span class="status-title"><i data-lucide="alert-triangle"></i>Gaps appear, but corpus covers them:</span> <span class="status-desc">Required corpus is ${formatMoney(requiredToday)} against spendable assets of ${formatMoney(opening.liquid)}. Final-year income coverage is ${(coverage * 100).toFixed(0)}%.</span>`;
+      } else {
+        els.status.classList.add("danger");
+        els.status.innerHTML = `<span class="status-title"><i data-lucide="x-circle"></i>Needs more spendable cushion:</span> <span class="status-desc">Required corpus is ${formatMoney(requiredToday)}, exceeding spendable assets by ${formatMoney(requiredToday - opening.liquid)}.</span>`;
+      }
+      lucide.createIcons();
+    }
+
+    // Render results tables
+    function renderTables(yearly, buckets) {
+      els.projectionRows.innerHTML = yearly.map(row => {
+        const gapClass = row.surplus >= 0 ? "good-text" : "bad-text";
+        return `<tr>
+          <td style="text-align: left; font-weight: 600;">Year ${row.year}</td>
+          <td>${formatMoney(row.income, false)}</td>
+          <td>${formatMoney(row.expenses, false)}</td>
+          <td class="${gapClass}">${formatMoney(row.surplus, false)}</td>
+          <td>${formatMoney(row.liquid, false)}</td>
+          <td style="font-weight: 600;">${formatMoney(row.total, false)}</td>
+        </tr>`;
+      }).join("");
+
+      els.bucketSummaryRows.innerHTML = buckets.map(bucket => `<tr>
+        <td style="text-align: left; font-weight: 500;">${bucket.name}</td>
+        <td>${formatMoney(bucket.value, false)}</td>
+        <td style="text-align: center;"><span class="${bucket.liquid ? 'good-text' : 'muted'}">${bucket.liquid ? 'Yes' : 'No'}</span></td>
+      </tr>`).join("");
+    }
+
+    // Render interactive chart via Chart.js
+    function renderChart() {
+      if (!lastProjection.length) return;
+      
+      const isDark = document.documentElement.getAttribute("data-theme") === "dark";
+      const gridColor = isDark ? "#334155" : "#e2e8f0";
+      const textMainColor = isDark ? "#94a3b8" : "#64748b";
+
+      const yearlyMode = els.chartMode.value === "yearly";
+      const labels = lastProjection.map(row => `Yr ${row.year}`);
+      
+      const income = lastProjection.map(row => yearlyMode ? row.income : row.income / 12);
+      const expenses = lastProjection.map(row => yearlyMode ? row.expenses : row.expenses / 12);
+      const total = lastProjection.map(row => row.total);
+      const liquid = lastProjection.map(row => row.liquid);
+
+      if (chartInstance) {
+        chartInstance.destroy();
+      }
+
+      // Format utility for tooltip values
+      const tooltipFormatter = (context) => {
+        return context.dataset.label + ": " + formatMoney(context.raw, false);
+      };
+
+      const ctx = els.canvas.getContext("2d");
+      chartInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [
+            {
+              label: 'Income',
+              data: income,
+              borderColor: isDark ? '#34d399' : '#059669',
+              backgroundColor: isDark ? 'rgba(52, 211, 153, 0.05)' : 'rgba(5, 150, 105, 0.04)',
+              fill: true,
+              tension: 0.35,
+              borderWidth: 2.5,
+              yAxisID: 'yFlow'
+            },
+            {
+              label: 'Expenses',
+              data: expenses,
+              borderColor: isDark ? '#fb7185' : '#e11d48',
+              backgroundColor: isDark ? 'rgba(251, 113, 133, 0.05)' : 'rgba(225, 29, 72, 0.04)',
+              fill: true,
+              tension: 0.35,
+              borderWidth: 2.5,
+              yAxisID: 'yFlow'
+            },
+            {
+              label: 'Spendable Assets',
+              data: liquid,
+              borderColor: '#8b5cf6',
+              borderDash: [5, 4],
+              fill: false,
+              tension: 0.35,
+              borderWidth: 2,
+              yAxisID: 'yAssets'
+            },
+            {
+              label: 'Total Assets',
+              data: total,
+              borderColor: '#3b82f6',
+              fill: false,
+              tension: 0.35,
+              borderWidth: 2,
+              yAxisID: 'yAssets'
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: {
+            mode: 'index',
+            intersect: false,
+          },
+          plugins: {
+            legend: {
+              labels: {
+                color: isDark ? '#f8fafc' : '#0f172a',
+                font: {
+                  family: 'Inter',
+                  weight: '500',
+                  size: 11
+                },
+                boxWidth: 12,
+                boxHeight: 12,
+                borderRadius: 4,
+                useBorderRadius: true
+              }
+            },
+            tooltip: {
+              callbacks: {
+                label: tooltipFormatter
+              },
+              titleColor: isDark ? '#f8fafc' : '#0f172a',
+              bodyColor: isDark ? '#cbd5e1' : '#334155',
+              backgroundColor: isDark ? '#1e293b' : '#ffffff',
+              borderColor: gridColor,
+              borderWidth: 1,
+              padding: 12,
+              titleFont: {
+                family: 'Plus Jakarta Sans',
+                weight: '700'
+              },
+              bodyFont: {
+                family: 'Inter'
+              }
+            }
+          },
+          scales: {
+            x: {
+              grid: {
+                color: gridColor
+              },
+              ticks: {
+                color: textMainColor,
+                font: {
+                  family: 'Inter',
+                  size: 10
+                }
+              }
+            },
+            yFlow: {
+              type: 'linear',
+              position: 'left',
+              title: {
+                display: true,
+                text: yearlyMode ? 'Annual Flow' : 'Monthly Flow',
+                color: textMainColor,
+                font: { family: 'Plus Jakarta Sans', weight: '600', size: 10 }
+              },
+              grid: {
+                color: gridColor
+              },
+              ticks: {
+                color: textMainColor,
+                font: { family: 'Inter', size: 10 },
+                callback: function(value) {
+                  return formatMoney(value, true);
+                }
+              }
+            },
+            yAssets: {
+              type: 'linear',
+              position: 'right',
+              title: {
+                display: true,
+                text: 'Asset Valuations',
+                color: textMainColor,
+                font: { family: 'Plus Jakarta Sans', weight: '600', size: 10 }
+              },
+              grid: {
+                drawOnChartArea: false, // only show gridlines for left axis
+              },
+              ticks: {
+                color: textMainColor,
+                font: { family: 'Inter', size: 10 },
+                callback: function(value) {
+                  return formatMoney(value, true);
+                }
+              }
+            }
+          }
+        }
+      });
+
+      els.chartNote.textContent = yearlyMode ? "Yearly totals (Flow on Left Y-Axis, Assets on Right Y-Axis)" : "Monthly run rate (Flow on Left Y-Axis, Assets on Right Y-Axis)";
+    }
+
+    // ==========================================
+    // CAPITAL TAB CALCULATION AND LOGIC
+    // ==========================================
+    function calculateCapitalNeed() {
+      const months = Math.max(1, Math.floor(numberFrom(els.capitalYears) * 12));
+      const annualEscalation = numberFrom(els.capitalEscalation) / 100;
+      const monthlyReturn = Math.pow(1 + numberFrom(els.capitalReturn) / 100, 1 / 12) - 1;
+      const baseNeed = Math.max(0, numberFrom(els.capitalMonthlyNeed));
+      const desiredEnd = Math.max(0, numberFrom(els.capitalEndValue));
+      const rows = [];
+      let required = desiredEnd / Math.pow(1 + monthlyReturn, months);
+
+      for (let month = 0; month < months; month++) {
+        const yearIndex = Math.floor(month / 12);
+        const expense = baseNeed * Math.pow(1 + annualEscalation, yearIndex);
+        required += expense / Math.pow(1 + monthlyReturn, month + 1);
+      }
+
+      let capital = required;
+      let totalExpenses = 0;
+      let totalReturns = 0;
+      for (let month = 0; month < months; month++) {
+        const yearIndex = Math.floor(month / 12);
+        const opening = capital;
+        const returnAmount = opening * monthlyReturn;
+        const expense = baseNeed * Math.pow(1 + annualEscalation, yearIndex);
+        capital = opening + returnAmount - expense;
+        totalExpenses += expense;
+        totalReturns += returnAmount;
+        rows.push({ month: month + 1, year: yearIndex + 1, opening, returnAmount, expense, closing: capital });
+      }
+
+      els.capitalRequired.textContent = formatMoney(required);
+      els.capitalTotalExpenses.textContent = formatMoney(totalExpenses);
+      els.capitalTotalReturns.textContent = formatMoney(totalReturns);
+      els.capitalFinal.textContent = formatMoney(capital);
+      renderCapitalRows(rows);
+      saveConfig();
+    }
+
+    function renderCapitalRows(rows) {
+      if (els.capitalTableMode.value === "monthly") {
+        els.capitalRows.innerHTML = rows.map(row => `<tr>
+          <td style="text-align: left;">Month ${row.month}</td>
+          <td>${formatMoney(row.opening, false)}</td>
+          <td class="good-text">+${formatMoney(row.returnAmount, false)}</td>
+          <td class="bad-text">-${formatMoney(row.expense, false)}</td>
+          <td style="font-weight:600;">${formatMoney(row.closing, false)}</td>
+        </tr>`).join("");
+        return;
+      }
+
+      const yearly = [];
+      rows.forEach(row => {
+        const index = row.year - 1;
+        if (!yearly[index]) {
+          yearly[index] = { year: row.year, opening: row.opening, returnAmount: 0, expense: 0, closing: row.closing };
+        }
+        yearly[index].returnAmount += row.returnAmount;
+        yearly[index].expense += row.expense;
+        yearly[index].closing = row.closing;
+      });
+
+      els.capitalRows.innerHTML = yearly.map(row => `<tr>
+        <td style="text-align: left; font-weight: 600;">Year ${row.year}</td>
+        <td>${formatMoney(row.opening, false)}</td>
+        <td class="good-text">+${formatMoney(row.returnAmount, false)}</td>
+        <td class="bad-text">-${formatMoney(row.expense, false)}</td>
+        <td style="font-weight:600;">${formatMoney(row.closing, false)}</td>
+      </tr>`).join("");
+    }
+
+    // ==========================================
+    // AFFORDABLE SPEND TAB CALCULATION AND LOGIC
+    // ==========================================
+    function addAffordIncomeRow(data = {}) {
+      const row = els.affordIncomeTemplate.content.firstElementChild.cloneNode(true);
+      row.querySelector(".afford-income-name").value = data.name ?? "Income Stream";
+      row.querySelector(".afford-income-amount").value = data.amount ?? 0;
+      row.querySelector(".afford-income-years").value = data.years ?? 5;
+      row.querySelector(".afford-income-growth").value = data.growth ?? 0;
+      
+      row.querySelector(".remove").addEventListener("click", () => {
+        row.remove();
+        calculateAffordableSpend();
+      });
+      row.querySelectorAll("input").forEach(input => input.addEventListener("input", calculateAffordableSpend));
+      els.affordIncomeRows.appendChild(row);
+      lucide.createIcons();
+    }
+
+    function addAffordOneOffRow(data = {}) {
+      const row = els.affordOneOffTemplate.content.firstElementChild.cloneNode(true);
+      row.querySelector(".afford-oneoff-name").value = data.name ?? "One-off Cash";
+      row.querySelector(".afford-oneoff-year").value = data.year ?? 5;
+      row.querySelector(".afford-oneoff-amount").value = data.amount ?? 0;
+      
+      row.querySelector(".remove").addEventListener("click", () => {
+        row.remove();
+        calculateAffordableSpend();
+      });
+      row.querySelectorAll("input").forEach(input => input.addEventListener("input", calculateAffordableSpend));
+      els.affordOneOffRows.appendChild(row);
+      lucide.createIcons();
+    }
+
+    // Dynamic stream collect
+    function collectAffordableIncomeStreams() {
+      return [...els.affordIncomeRows.querySelectorAll("tr")].map(row => ({
+        name: row.querySelector(".afford-income-name").value.trim() || "Income",
+        amount: Math.max(0, numberFrom(row.querySelector(".afford-income-amount"))),
+        years: Math.max(1, Math.floor(numberFrom(row.querySelector(".afford-income-years")))),
+        growth: numberFrom(row.querySelector(".afford-income-growth")) / 100,
+      }));
+    }
+
+    function collectAffordableOneOffs() {
+      return [...els.affordOneOffRows.querySelectorAll("tr")].map(row => ({
+        name: row.querySelector(".afford-oneoff-name").value.trim() || "One-off",
+        year: Math.max(1, Math.floor(numberFrom(row.querySelector(".afford-oneoff-year")))),
+        amount: Math.max(0, numberFrom(row.querySelector(".afford-oneoff-amount"))),
+      }));
+    }
+
+    function affordableRecurringIncomeForMonth(streams, month) {
+      const year = Math.floor(month / 12) + 1;
+      return streams.reduce((total, stream) => {
+        if (year > stream.years) return total;
+        return total + stream.amount * Math.pow(1 + stream.growth, year - 1);
+      }, 0);
+    }
+
+    function affordableOneOffForMonth(oneOffs, month) {
+      const year = Math.floor(month / 12) + 1;
+      const isYearEnd = month % 12 === 11;
+      if (!isYearEnd) return 0;
+      return oneOffs.reduce((total, item) => total + (item.year === year ? item.amount : 0), 0);
+    }
+
+    function calculateAffordableSpend() {
+      const months = Math.max(1, Math.floor(numberFrom(els.affordYears) * 12));
+      const currentCapital = Math.max(0, numberFrom(els.affordCurrentCapital));
+      const desiredEnd = Math.max(0, numberFrom(els.affordEndValue));
+      const monthlyReturn = Math.pow(1 + numberFrom(els.affordReturn) / 100, 1 / 12) - 1;
+      const annualEscalation = numberFrom(els.affordEscalation) / 100;
+      const incomeStreams = collectAffordableIncomeStreams();
+      const oneOffs = collectAffordableOneOffs();
+
+      let futureValueOfCapitalAndIncome = currentCapital * Math.pow(1 + monthlyReturn, months);
+      let expenseFactor = 0;
+      for (let month = 0; month < months; month++) {
+        const year = Math.floor(month / 12) + 1;
+        const monthsToEnd = months - month - 1;
+        const growthToEnd = Math.pow(1 + monthlyReturn, monthsToEnd);
+        const income = affordableRecurringIncomeForMonth(incomeStreams, month) + affordableOneOffForMonth(oneOffs, month);
+        futureValueOfCapitalAndIncome += income * growthToEnd;
+        expenseFactor += Math.pow(1 + annualEscalation, year - 1) * growthToEnd;
+      }
+
+      const affordableMonthly = Math.max(0, (futureValueOfCapitalAndIncome - desiredEnd) / Math.max(1, expenseFactor));
+      const rows = [];
+      let capital = currentCapital;
+      let totalIncome = 0;
+      
+      for (let month = 0; month < months; month++) {
+        const year = Math.floor(month / 12) + 1;
+        const opening = capital;
+        const income = affordableRecurringIncomeForMonth(incomeStreams, month) + affordableOneOffForMonth(oneOffs, month);
+        const returnAmount = opening * monthlyReturn;
+        const expense = affordableMonthly * Math.pow(1 + annualEscalation, year - 1);
+        capital = opening + returnAmount + income - expense;
+        totalIncome += income;
+        rows.push({ month: month + 1, year, opening, income, returnAmount, expense, closing: capital });
+      }
+
+      els.affordMonthlyExpense.textContent = formatMoney(affordableMonthly);
+      els.affordYearOneExpense.textContent = formatMoney(affordableMonthly * 12);
+      els.affordTotalIncome.textContent = formatMoney(totalIncome);
+      els.affordFinalCapital.textContent = formatMoney(capital);
+      renderAffordableRows(rows);
+      saveConfig();
+    }
+
+    function renderAffordableRows(rows) {
+      if (els.affordTableMode.value === "monthly") {
+        els.affordRows.innerHTML = rows.map(row => `<tr>
+          <td style="text-align: left;">Month ${row.month}</td>
+          <td>${formatMoney(row.opening, false)}</td>
+          <td class="good-text">+${formatMoney(row.income, false)}</td>
+          <td class="good-text">+${formatMoney(row.returnAmount, false)}</td>
+          <td class="bad-text">-${formatMoney(row.expense, false)}</td>
+          <td style="font-weight:600;">${formatMoney(row.closing, false)}</td>
+        </tr>`).join("");
+        return;
+      }
+
+      const yearly = [];
+      rows.forEach(row => {
+        const index = row.year - 1;
+        if (!yearly[index]) {
+          yearly[index] = { year: row.year, opening: row.opening, income: 0, returnAmount: 0, expense: 0, closing: row.closing };
+        }
+        yearly[index].income += row.income;
+        yearly[index].returnAmount += row.returnAmount;
+        yearly[index].expense += row.expense;
+        yearly[index].closing = row.closing;
+      });
+
+      els.affordRows.innerHTML = yearly.map(row => `<tr>
+        <td style="text-align: left; font-weight: 600;">Year ${row.year}</td>
+        <td>${formatMoney(row.opening, false)}</td>
+        <td class="good-text">+${formatMoney(row.income, false)}</td>
+        <td class="good-text">+${formatMoney(row.returnAmount, false)}</td>
+        <td class="bad-text">-${formatMoney(row.expense, false)}</td>
+        <td style="font-weight:600;">${formatMoney(row.closing, false)}</td>
+      </tr>`).join("");
+    }
+
+    // ==========================================
+    // NAVIGATION / TABS SWITCHING
+    // ==========================================
+    function switchTab(tabId) {
+      document.querySelectorAll(".tab-button").forEach(button => {
+        button.classList.toggle("active", button.dataset.tab === tabId);
+      });
+      document.querySelectorAll(".tab-panel").forEach(panel => {
+        panel.classList.toggle("active", panel.id === tabId);
+      });
+      
+      localStorage.setItem("financial_planner_active_tab", tabId);
+      
+      if (tabId === "dashboardTab") {
+        setTimeout(renderChart, 50); // Small delay to let container resize
+      } else if (tabId === "capitalTab") {
+        calculateCapitalNeed();
+      } else if (tabId === "affordTab") {
+        calculateAffordableSpend();
+      }
+    }
+
+    // ==========================================
+    // EXPORT TO CSV CAPABILITIES
+    // ==========================================
+    function exportTableToCsv(tbodyElement, headers, filename) {
+      let csvContent = "data:text/csv;charset=utf-8,";
+      
+      // Add Headers
+      csvContent += headers.join(",") + "\r\n";
+      
+      // Add Rows
+      const rows = tbodyElement.querySelectorAll("tr");
+      rows.forEach(row => {
+        const rowData = [];
+        row.querySelectorAll("td").forEach(cell => {
+          let text = cell.textContent.trim();
+          
+          const input = cell.querySelector("input[type='text'], input[type='number']");
+          if (input) {
+            text = input.value;
+          } else {
+            const checkbox = cell.querySelector("input[type='checkbox']");
+            if (checkbox) {
+              text = checkbox.checked ? "Yes" : "No";
+            }
+          }
+
+          // Clean commas & currency symbols for clean CSV imports
+          text = text.replace(/₹|\$|€|¥|£/g, "").replace(/,/g, "").trim();
+          rowData.push(`"${text}"`);
+        });
+        csvContent += rowData.join(",") + "\r\n";
+      });
+
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement("a");
+      link.setAttribute("href", encodedUri);
+      link.setAttribute("download", filename);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    // ==========================================
+    // THEME CONTROLLER
+    // ==========================================
+    function initTheme() {
+      const savedTheme = localStorage.getItem("theme") || "dark";
+      setTheme(savedTheme);
+    }
+
+    function setTheme(theme) {
+      document.documentElement.setAttribute("data-theme", theme);
+      localStorage.setItem("theme", theme);
+      
+      if (theme === "dark") {
+        els.themeSunIcon.style.display = "block";
+        els.themeMoonIcon.style.display = "none";
+      } else {
+        els.themeSunIcon.style.display = "none";
+        els.themeMoonIcon.style.display = "block";
+      }
+      
+      // Update chart palette instantly
+      if (chartInstance) {
+        renderChart();
+      }
+    }
+
+    // Dual-control range-input binder (clamps to min/max on blur, updates slider on type)
+    // Upgraded to handle ONLY integer values between 4 and 15
+    function bindSync(inputEl, sliderEl, callback) {
+      inputEl.addEventListener("input", () => {
+        let val = parseInt(inputEl.value, 10);
+        if (!isNaN(val)) {
+          sliderEl.value = Math.max(4, Math.min(15, val));
+        }
+        callback();
+      });
+      
+      inputEl.addEventListener("blur", () => {
+        let val = parseInt(inputEl.value, 10);
+        if (isNaN(val) || val < 4) {
+          inputEl.value = 4;
+        } else if (val > 15) {
+          inputEl.value = 15;
+        } else {
+          inputEl.value = val;
+        }
+        sliderEl.value = inputEl.value;
+        callback();
+      });
+      
+      sliderEl.addEventListener("input", () => {
+        inputEl.value = sliderEl.value;
+        callback();
+      });
+    }
+
+    // ==========================================
+    // LOCAL STORAGE CONFIGURATION BINDINGS
+    // ==========================================
+    function collectBucketsRaw() {
+      return [...els.bucketRows.querySelectorAll("tr")].map(row => ({
+        name: row.querySelector(".bucket-name").value.trim(),
+        start: numberFrom(row.querySelector(".bucket-start")),
+        value: numberFrom(row.querySelector(".bucket-value")),
+        returnRate: numberFrom(row.querySelector(".bucket-return")),
+        liquid: row.querySelector(".bucket-liquid").checked,
+      }));
+    }
+
+    function collectStreamsRaw() {
+      return [...els.streamRows.querySelectorAll("tr")].map(row => ({
+        name: row.querySelector(".stream-name").value.trim(),
+        amount: numberFrom(row.querySelector(".stream-amount")),
+        start: numberFrom(row.querySelector(".stream-start")),
+        end: row.querySelector(".stream-end").value.trim() === "" ? "" : numberFrom(row.querySelector(".stream-end")),
+        growth: numberFrom(row.querySelector(".stream-growth")),
+      }));
+    }
+
+    function collectAffordableIncomeStreamsRaw() {
+      return [...els.affordIncomeRows.querySelectorAll("tr")].map(row => ({
+        name: row.querySelector(".afford-income-name").value.trim(),
+        amount: numberFrom(row.querySelector(".afford-income-amount")),
+        years: numberFrom(row.querySelector(".afford-income-years")),
+        growth: numberFrom(row.querySelector(".afford-income-growth")),
+      }));
+    }
+
+    function collectAffordableOneOffsRaw() {
+      return [...els.affordOneOffRows.querySelectorAll("tr")].map(row => ({
+        name: row.querySelector(".afford-oneoff-name").value.trim(),
+        year: numberFrom(row.querySelector(".afford-oneoff-year")),
+        amount: numberFrom(row.querySelector(".afford-oneoff-amount")),
+      }));
+    }
+
+    function saveConfig() {
+      try {
+        const config = {
+          currency: els.currency.value,
+          years: numberFrom(els.years),
+          monthlyExpenses: numberFrom(els.monthlyExpenses),
+          expenseEscalation: numberFrom(els.expenseEscalation),
+          chartMode: els.chartMode.value,
+          
+          buckets: collectBucketsRaw(),
+          streams: collectStreamsRaw(),
+
+          capitalMonthlyNeed: numberFrom(els.capitalMonthlyNeed),
+          capitalEscalation: numberFrom(els.capitalEscalation),
+          capitalYears: numberFrom(els.capitalYears),
+          capitalReturn: numberFrom(els.capitalReturn),
+          capitalEndValue: numberFrom(els.capitalEndValue),
+          capitalTableMode: els.capitalTableMode.value,
+
+          affordCurrentCapital: numberFrom(els.affordCurrentCapital),
+          affordReturn: numberFrom(els.affordReturn),
+          affordEscalation: numberFrom(els.affordEscalation),
+          affordYears: numberFrom(els.affordYears),
+          affordEndValue: numberFrom(els.affordEndValue),
+          affordTableMode: els.affordTableMode.value,
+          
+          affordStreams: collectAffordableIncomeStreamsRaw(),
+          affordOneOffs: collectAffordableOneOffsRaw()
+        };
+        localStorage.setItem("financial_planner_config", JSON.stringify(config));
+      } catch (e) {
+        console.error("Failed to save config:", e);
+      }
+    }
+
+    function loadConfig() {
+      const dataStr = localStorage.getItem("financial_planner_config");
+      if (!dataStr) return false;
+      try {
+        const config = JSON.parse(dataStr);
+        
+        // Restore Tab 1 controls
+        if (config.currency !== undefined) els.currency.value = config.currency;
+        if (config.years !== undefined) els.years.value = config.years;
+        if (config.monthlyExpenses !== undefined) els.monthlyExpenses.value = config.monthlyExpenses;
+        if (config.expenseEscalation !== undefined) {
+          els.expenseEscalation.value = config.expenseEscalation;
+          els.expenseEscalationSlider.value = config.expenseEscalation;
+        }
+        if (config.chartMode !== undefined) els.chartMode.value = config.chartMode;
+        
+        // Restore Tab 1 tables
+        if (config.buckets) {
+          els.bucketRows.innerHTML = "";
+          config.buckets.forEach(addBucketRow);
+        }
+        if (config.streams) {
+          els.streamRows.innerHTML = "";
+          config.streams.forEach(addStreamRow);
+        }
+
+        // Restore Tab 2 controls
+        if (config.capitalMonthlyNeed !== undefined) els.capitalMonthlyNeed.value = config.capitalMonthlyNeed;
+        if (config.capitalEscalation !== undefined) {
+          els.capitalEscalation.value = config.capitalEscalation;
+          els.capitalEscalationSlider.value = config.capitalEscalation;
+        }
+        if (config.capitalYears !== undefined) els.capitalYears.value = config.capitalYears;
+        if (config.capitalReturn !== undefined) els.capitalReturn.value = config.capitalReturn;
+        if (config.capitalEndValue !== undefined) els.capitalEndValue.value = config.capitalEndValue;
+        if (config.capitalTableMode !== undefined) els.capitalTableMode.value = config.capitalTableMode;
+
+        // Restore Tab 3 controls
+        if (config.affordCurrentCapital !== undefined) els.affordCurrentCapital.value = config.affordCurrentCapital;
+        if (config.affordReturn !== undefined) {
+          els.affordReturn.value = config.affordReturn;
+          els.affordReturnSlider.value = config.affordReturn;
+        }
+        if (config.affordEscalation !== undefined) els.affordEscalation.value = config.affordEscalation;
+        if (config.affordYears !== undefined) els.affordYears.value = config.affordYears;
+        if (config.affordEndValue !== undefined) els.affordEndValue.value = config.affordEndValue;
+        if (config.affordTableMode !== undefined) els.affordTableMode.value = config.affordTableMode;
+        
+        // Restore Tab 3 tables
+        if (config.affordStreams) {
+          els.affordIncomeRows.innerHTML = "";
+          config.affordStreams.forEach(addAffordIncomeRow);
+        }
+        if (config.affordOneOffs) {
+          els.affordOneOffRows.innerHTML = "";
+          config.affordOneOffs.forEach(addAffordOneOffRow);
+        }
+        
+        return true;
+      } catch (e) {
+        console.error("Error loading config:", e);
+        return false;
+      }
+    }
+
+    // Load baseline data on startup
+    function loadDefaultData() {
+      // Check if there's saved data first
+      if (loadConfig()) {
+        // Recalculate everything
+        calculate();
+        calculateCapitalNeed();
+        calculateAffordableSpend();
+        
+        // Restore active tab
+        const activeTab = localStorage.getItem("financial_planner_active_tab");
+        if (activeTab) {
+          switchTab(activeTab);
+        }
+        return;
+      }
+      // Dashboard Tab Defaults
+      els.years.value = 25;
+      els.monthlyExpenses.value = 80000;
+      els.expenseEscalation.value = 8;
+      els.expenseEscalationSlider.value = 8;
+      
+      els.bucketRows.innerHTML = "";
+      [
+        { name: "Home / real estate", start: 0, value: 5000000, returnRate: 5, liquid: false },
+        { name: "FDs", start: 0, value: 1000000, returnRate: 6.5, liquid: true },
+        { name: "Mutual funds", start: 0, value: 2000000, returnRate: 10, liquid: true },
+        { name: "Stocks", start: 0, value: 800000, returnRate: 12, liquid: true },
+        { name: "Gold", start: 0, value: 500000, returnRate: 6, liquid: false },
+      ].forEach(addBucketRow);
+      
+      els.streamRows.innerHTML = "";
+      [
+        { name: "Current income", amount: 80000, start: 0, growth: 8 },
+        { name: "Rent", amount: 25000, start: 0, growth: 5 },
+        { name: "Future income", amount: 50000, start: 36, growth: 4 },
+      ].forEach(addStreamRow);
+
+      // Capital Tab Defaults
+      els.capitalMonthlyNeed.value = 50000;
+      els.capitalEscalation.value = 8;
+      els.capitalEscalationSlider.value = 8;
+      els.capitalYears.value = 25;
+      els.capitalReturn.value = 8;
+      els.capitalEndValue.value = 0;
+
+      // Affordable Spend Tab Defaults
+      els.affordCurrentCapital.value = 3000000;
+      els.affordReturn.value = 8;
+      els.affordReturnSlider.value = 8;
+      els.affordEscalation.value = 8;
+      els.affordYears.value = 25;
+      els.affordEndValue.value = 0;
+      
+      els.affordIncomeRows.innerHTML = "";
+      [
+        { name: "Salary", amount: 100000, years: 5, growth: 8 },
+        { name: "Second income", amount: 30000, years: 5, growth: 5 },
+      ].forEach(addAffordIncomeRow);
+      
+      els.affordOneOffRows.innerHTML = "";
+      [
+        { name: "Bonus / maturity", year: 5, amount: 0 }
+      ].forEach(addAffordOneOffRow);
+
+      // Recalculate everything
+      calculate();
+      calculateCapitalNeed();
+      calculateAffordableSpend();
+    }
+
+    // ==========================================
+    // INITIALIZATION & LISTENERS
+    // ==========================================
+    
+    // Tab switching bindings
+    document.querySelectorAll(".tab-button").forEach(button => {
+      button.addEventListener("click", () => switchTab(button.dataset.tab));
+    });
+
+    // Theme toggle binding
+    els.themeToggleBtn.addEventListener("click", () => {
+      const currentTheme = document.documentElement.getAttribute("data-theme");
+      setTheme(currentTheme === "dark" ? "light" : "dark");
+    });
+
+    // Dashboard dynamic controls
+    els.addBucket.addEventListener("click", () => {
+      addBucketRow({ name: "New bucket", start: 0, value: 0, returnRate: 6, liquid: true });
+      calculate();
+    });
+
+    els.addStream.addEventListener("click", () => {
+      addStreamRow({ name: "New income", amount: 50000, start: 12, growth: 3 });
+      calculate();
+    });
+
+    els.recalculate.addEventListener("click", calculate);
+    els.chartMode.addEventListener("change", renderChart);
+    
+    // Bind sensitivity sliders
+    bindSync(els.expenseEscalation, els.expenseEscalationSlider, calculate);
+    bindSync(els.capitalEscalation, els.capitalEscalationSlider, calculateCapitalNeed);
+    bindSync(els.affordReturn, els.affordReturnSlider, calculateAffordableSpend);
+
+    // Input listeners to auto calculate (ignoring the slider-synchronized fields to avoid double-runs)
+    document.querySelectorAll(".topbar input, .topbar select, #monthlyExpenses").forEach(input => {
+      if (input.id !== "expenseEscalation") {
+        input.addEventListener("input", calculate);
+      }
+    });
+
+    document.querySelectorAll("#capitalTab input, #capitalTab select").forEach(input => {
+      if (input.id !== "capitalEscalation") {
+        input.addEventListener("input", calculateCapitalNeed);
+      }
+    });
+
+    document.querySelectorAll("#affordTab input, #affordTab select").forEach(input => {
+      if (input.id !== "affordReturn") {
+        input.addEventListener("input", calculateAffordableSpend);
+      }
+    });
+
+    els.addAffordIncomeStream.addEventListener("click", () => {
+      addAffordIncomeRow({ name: "Income stream", amount: 100000, years: 5, growth: 8 });
+      calculateAffordableSpend();
+    });
+
+    els.addAffordOneOff.addEventListener("click", () => {
+      addAffordOneOffRow({ name: "One-off", year: 5, amount: 0 });
+      calculateAffordableSpend();
+    });
+
+    // Export CSV clicks
+    els.exportCsvDashboard.addEventListener("click", () => {
+      exportTableToCsv(
+        els.projectionRows, 
+        ["Year", "Income", "Expenses", "Gap", "Spendable", "Total Assets"], 
+        "yearly_projection.csv"
+      );
+    });
+
+    els.exportCsvCapital.addEventListener("click", () => {
+      const mode = els.capitalTableMode.value;
+      exportTableToCsv(
+        els.capitalRows, 
+        [mode === "yearly" ? "Year" : "Month", "Opening Capital", "Returns Generated", "Expenses Withdrawn", "Closing Capital"], 
+        "capital_need_drawdown.csv"
+      );
+    });
+
+    els.exportCsvAfford.addEventListener("click", () => {
+      const mode = els.affordTableMode.value;
+      exportTableToCsv(
+        els.affordRows,
+        [mode === "yearly" ? "Year" : "Month", "Opening Capital", "Incomes", "Returns Generated", "Expenses Withdrawn", "Closing Capital"],
+        "affordable_drawdown.csv"
+      );
+    });
+
+    // Window resize handler
+    window.addEventListener("resize", () => {
+      if (chartInstance) {
+        chartInstance.resize();
+      }
+    });
+
+    // Initialize Default States & Load Default Data
+    initTheme();
+    loadDefaultData();
+    
+  </script>
+</body>
+</html>
