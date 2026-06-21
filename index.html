@@ -214,7 +214,7 @@
 
     /* Main Content Area */
     main {
-      width: min(1500px, calc(100% - 32px));
+      width: min(1700px, calc(100% - 32px));
       margin: 0 auto;
       padding: 14px 0 24px;
     }
@@ -239,7 +239,6 @@
       border: 1px solid var(--border-color);
       border-radius: 12px;
       box-shadow: var(--panel-shadow);
-      overflow: hidden;
       margin-bottom: 16px;
     }
 
@@ -498,10 +497,13 @@
 
     /* Tables Styles */
     .table-shell {
-      overflow-x: auto;
+      overflow-x: visible; /* Show entire columns, let overflow bleed naturally for zoom/page scroll */
       border: 1px solid var(--border-color);
       border-radius: 12px;
       background: var(--bg-secondary);
+      display: block;
+      width: max-content;
+      min-width: 100%;
     }
 
     table {
@@ -558,10 +560,17 @@
       box-shadow: 0 0 0 3px var(--accent-glow);
     }
 
-    td.name-cell input { min-width: 100px; text-align: left; }
-    td.amount-cell input { min-width: 80px; font-variant-numeric: tabular-nums; }
-    td.rate-cell input { width: 50px; font-variant-numeric: tabular-nums; }
-    td.month-cell input { width: 60px; font-variant-numeric: tabular-nums; }
+    /* Table Column Widths & Alignments */
+    .name-cell { width: 32%; min-width: 100px; text-align: left; }
+    .amount-cell { width: 22%; min-width: 85px; text-align: right; }
+    .month-cell { width: 14%; min-width: 55px; text-align: right; }
+    .rate-cell { width: 12%; min-width: 48px; text-align: right; }
+    .switch-cell { width: 10%; min-width: 45px; text-align: center; }
+
+    td.name-cell input { text-align: left; width: 100% !important; }
+    td.amount-cell input { text-align: right; width: 100% !important; font-variant-numeric: tabular-nums; }
+    td.rate-cell input { text-align: right; width: 100% !important; font-variant-numeric: tabular-nums; }
+    td.month-cell input { text-align: right; width: 100% !important; font-variant-numeric: tabular-nums; }
 
     table button.btn.danger-outline.remove {
       height: 22px;
@@ -634,7 +643,7 @@
     /* Metrics Groups Dashboard */
     .metrics-dashboard {
       display: grid;
-      grid-template-columns: 3fr 7fr 3fr;
+      grid-template-columns: 3fr 3fr 3fr 2.5fr;
       gap: 16px;
       margin-bottom: 16px;
       width: 100%;
@@ -836,14 +845,14 @@
     }
 
     .chart-wrap {
-      height: 280px;
+      height: 380px;
       position: relative;
       width: 100%;
     }
 
     /* Colors and details classes */
-    .good-text { color: var(--income-color); font-weight: 600; }
-    .bad-text { color: var(--expense-color); font-weight: 600; }
+    .good-text { color: var(--income-color) !important; font-weight: 600; }
+    .bad-text { color: var(--expense-color) !important; font-weight: 600; }
     .muted { color: var(--text-secondary); }
 
     /* Merged Calculators Tab Layout */
@@ -853,6 +862,22 @@
       gap: 20px;
       align-items: start;
       margin-bottom: 20px;
+    }
+
+    .metrics-dashboard-2col {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+      margin-bottom: 16px;
+      width: 100%;
+    }
+
+    .drawdown-tables-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      align-items: start;
+      margin-bottom: 24px;
     }
 
     .tight-grid-col {
@@ -876,6 +901,8 @@
     /* Additional layout responsiveness */
     @media (max-width: 1200px) {
       .calculators-layout { grid-template-columns: 1fr; }
+      .drawdown-tables-grid { grid-template-columns: 1fr; }
+      .metrics-dashboard-2col { grid-template-columns: 1fr; }
     }
 
     /* Bouncing Animation for Bear Bubble */
@@ -889,35 +916,19 @@
       .metrics-dashboard {
         grid-template-columns: repeat(2, 1fr);
       }
-      .metrics-dashboard > div:nth-child(1) {
-        grid-column: 1;
-        grid-row: 1;
-      }
-      .metrics-dashboard > div:nth-child(3) {
-        grid-column: 2;
-        grid-row: 1;
-      }
-      .metrics-dashboard > div:nth-child(2) {
-        grid-column: span 2;
-        grid-row: 2;
-      }
     }
 
     @media (max-width: 1200px) {
       .layout { grid-template-columns: 1fr; }
       .calculators-layout { grid-template-columns: 1fr; }
+      .drawdown-tables-grid { grid-template-columns: 1fr; }
+      .metrics-dashboard-2col { grid-template-columns: 1fr; }
     }
 
     @media (max-width: 800px) {
       .metrics-dashboard {
         grid-template-columns: 1fr;
         gap: 14px;
-      }
-      .metrics-dashboard > div:nth-child(1),
-      .metrics-dashboard > div:nth-child(2),
-      .metrics-dashboard > div:nth-child(3) {
-        grid-column: span 1;
-        grid-row: auto;
       }
     }
 
@@ -976,8 +987,8 @@
       .tab-button {
         flex: 1;
         justify-content: center;
-        padding: 5px 10px;
-        font-size: 11.5px;
+        padding: 6px 12px;
+        font-size: 12px;
         border-radius: 6px;
       }
       .tab-button i {
@@ -987,6 +998,8 @@
       .split { grid-template-columns: 1fr; }
       .chart-wrap { height: 280px; }
     }
+
+
 
     /* Gamified Group Custom Styling */
     .gamified-group {
@@ -1138,6 +1151,45 @@
       box-shadow: none;
     }
 
+    /* General Assumptions Layout */
+    .assumptions-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+    }
+
+    @media (max-width: 768px) {
+      main {
+        width: calc(100% - 16px);
+      }
+      .chart-wrap {
+        height: 240px !important;
+      }
+    }
+
+    @media (max-width: 600px) {
+      .assumptions-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      .metrics {
+        grid-template-columns: repeat(3, 1fr) !important;
+        gap: 6px !important;
+      }
+      .metric {
+        padding: 8px 6px !important;
+        min-height: 70px !important;
+      }
+      .metric strong {
+        font-size: 13.5px !important;
+      }
+      .metric small {
+        font-size: 9px !important;
+      }
+      .metric-head span {
+        font-size: 9px !important;
+      }
+    }
+
     /* Print Styles */
     @media print {
       body {
@@ -1160,7 +1212,47 @@
         border: none !important;
         background: transparent !important;
         color: #000000 !important;
-      }
+    /* Clean Table and Copy Tab Custom Styling */
+    .clean-table-shell {
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      margin-top: 10px;
+    }
+    .clean-table {
+      width: 100%;
+      min-width: max-content;
+      border-collapse: separate;
+      border-spacing: 0;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      font-size: 11.5px;
+      overflow: hidden;
+    }
+    .clean-table th, .clean-table td {
+      padding: 6px 10px;
+      border-bottom: 1px solid var(--border-color);
+      text-align: right;
+      white-space: nowrap;
+      vertical-align: middle;
+    }
+    .clean-table th:first-child, .clean-table td:first-child {
+      text-align: left;
+    }
+    .clean-table tr:last-child td {
+      border-bottom: 0;
+    }
+    .clean-table th {
+      background: rgba(255, 255, 255, 0.02);
+      color: var(--text-secondary);
+      font-size: 9px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    :root[data-theme="light"] .clean-table th {
+      background: rgba(0, 0, 0, 0.02);
     }
   </style>
 </head>
@@ -1179,8 +1271,8 @@
       <button class="tab-button active" type="button" data-tab="dashboardTab">
         <i data-lucide="layout-dashboard"></i>Dashboard
       </button>
-      <button class="tab-button" type="button" data-tab="calculatorsTab">
-        <i data-lucide="calculator"></i>Calculators
+      <button class="tab-button" type="button" data-tab="inputsTab">
+        <i data-lucide="sliders"></i>Inputs
       </button>
     </div>
 
@@ -1202,8 +1294,8 @@
       <div class="metrics-dashboard">
         <!-- Group 1: Flows & Rates -->
         <div class="metric-group">
-          <div class="metric-group-header">Running Flows</div>
-          <div class="metrics">
+          <div class="metric-group-header">earn.to.burn.</div>
+          <div class="metrics" style="grid-template-columns: repeat(3, 1fr);">
             <div class="metric expense-metric">
               <div class="metric-head"><span>Expenses today</span><i data-lucide="receipt"></i></div>
               <strong id="liveExpense24h">-</strong>
@@ -1224,28 +1316,47 @@
 
         <!-- Group 2: Needs, Gaps & Assets -->
         <div class="metric-group">
-          <div class="metric-group-header">Needs, Gaps & Assets</div>
-          <div class="metrics">
+          <div class="metric-group-header">get.set.escape.</div>
+          <div class="metrics" style="grid-template-columns: repeat(3, 1fr);">
+            <!-- Row 1 -->
             <div class="metric accent-metric">
               <div class="metric-head"><span>Escape Capital</span><i data-lucide="rocket"></i></div>
               <strong id="escapeCapital">-</strong>
               <small>PV of future expenses</small>
-            </div>
-            <div class="metric exotic-blue-metric">
-              <div class="metric-head"><span>Income Streams (PV)</span><i data-lucide="wallet"></i></div>
-              <strong id="pvIncomeStreams">-</strong>
-              <small id="pvIncomeStreamsSubtitle">PV of future income</small>
             </div>
             <div class="metric income-metric">
               <div class="metric-head"><span>Spendable Assets</span><i data-lucide="shield-check"></i></div>
               <strong id="liquidAssets">-</strong>
               <small id="liquidAssetsSubtitle">Assets marked Use</small>
             </div>
-            <div id="requiredCorpusCard" class="metric expense-metric">
-              <div id="requiredCorpusHead" class="metric-head"><span>Required Corpus</span><i data-lucide="activity"></i></div>
-              <strong id="requiredCorpus">-</strong>
-              <small id="requiredCorpusSubtitle">PV of future gaps</small>
+            <div class="metric exotic-blue-metric">
+              <div class="metric-head"><span>Income Streams (PV)</span><i data-lucide="wallet"></i></div>
+              <strong id="pvIncomeStreams">-</strong>
+              <small id="pvIncomeStreamsSubtitle">Cumulative with assets</small>
             </div>
+            <!-- Row 2 -->
+            <div class="metric accent-metric">
+              <div class="metric-head"><span>I NEED</span><i data-lucide="calculator"></i></div>
+              <strong id="escapeCapitalMonthly">-</strong>
+              <small>Matches Escape Capital</small>
+            </div>
+            <div class="metric income-metric">
+              <div class="metric-head"><span>SO I'M AT</span><i data-lucide="piggy-bank"></i></div>
+              <strong id="affordableSpendFromAssets">-</strong>
+              <small>Supported by assets only</small>
+            </div>
+            <div class="metric exotic-blue-metric">
+              <div class="metric-head"><span>AND, THE PLAN IS</span><i data-lucide="trending-up"></i></div>
+              <strong id="affordableSpend">-</strong>
+              <small>Supported by total PV</small>
+            </div>
+          </div>
+        </div>
+
+        <!-- Group 3: other.numbers. -->
+        <div class="metric-group">
+          <div class="metric-group-header">other.numbers.</div>
+          <div class="metrics" style="grid-template-columns: repeat(3, 1fr);">
             <div class="metric warning-metric">
               <div class="metric-head"><span>First Gap</span><i data-lucide="alert-circle"></i></div>
               <strong id="firstGap">-</strong>
@@ -1256,10 +1367,10 @@
               <strong id="finalAssets">-</strong>
               <small id="finalAssetsSubtitle">After returns & gaps</small>
             </div>
-            <div class="metric warning-metric">
-              <div class="metric-head"><span>Wt. Return</span><i data-lucide="percent"></i></div>
-              <strong id="weightedReturn">-</strong>
-              <small>Spendable return</small>
+            <div class="metric income-metric">
+              <div class="metric-head"><span>+1% Return Impact</span><i data-lucide="trending-up"></i></div>
+              <strong id="finalAssetsSensitivity">-</strong>
+              <small>Extra assets built</small>
             </div>
           </div>
         </div>
@@ -1317,34 +1428,23 @@
         <span class="status-desc">Adjust assumptions to see whether income and spendable assets cover expenses.</span>
       </div>
 
-      <!-- Controls Topbar -->
-      <div class="topbar">
-        <div class="field">
-          <label for="currency">Currency</label>
-          <input id="currency" type="text" maxlength="4" value="₹">
-        </div>
-        <div class="field">
-          <label for="years">Projection years</label>
-          <input id="years" type="number" min="1" max="60" step="1" value="25">
-        </div>
-        <div class="field">
-          <label for="chartMode">Chart view</label>
-          <select id="chartMode">
-            <option value="yearly">Yearly totals</option>
-            <option value="monthly">Monthly run rate</option>
-          </select>
-        </div>
-      </div>
-
+      <!-- Tables Side-by-Side and Chart Stacked on Left -->
       <div class="layout">
-        <!-- Left Column: Visualizations & Detailed Projection -->
-        <div class="stack">
+        <!-- Left Column: Chart and Detailed Projection Table -->
+        <div class="tight-grid-col">
           <!-- Chart Card -->
-          <div class="panel chart-card">
-            <div class="section-head" style="margin-bottom: 12px;">
+          <div class="panel chart-card" style="margin-bottom: 0;">
+            <div class="section-head" style="margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between;">
               <div>
                 <h2>Projection Chart</h2>
                 <small id="chartNote">Yearly totals</small>
+              </div>
+              <div class="field" style="flex-direction: row; align-items: center; gap: 6px;">
+                <label for="chartMode" style="margin-bottom: 0; white-space: nowrap; font-size: 9px;">Chart view</label>
+                <select id="chartMode" style="width: 130px; height: 26px; font-size: 11px; padding: 2px 6px;">
+                  <option value="yearly">Yearly totals</option>
+                  <option value="monthly">Monthly run rate</option>
+                </select>
               </div>
             </div>
             <div class="chart-wrap">
@@ -1352,15 +1452,15 @@
             </div>
           </div>
 
-          <!-- Yearly Projection Table -->
-          <div class="panel pad" style="flex: 1; display: flex; flex-direction: column;">
+          <!-- Left Column: Detailed Projection -->
+          <div class="panel pad" style="display: flex; flex-direction: column; margin-bottom: 0;">
             <div class="section-head">
               <h2>Yearly Projection</h2>
               <button id="exportCsvDashboard" class="btn" style="height: 28px; padding: 0 8px; font-size: 11px;" type="button">
                 <i data-lucide="download" style="width: 12px; height: 12px;"></i> CSV
               </button>
             </div>
-            <div class="table-shell" style="flex: 1; overflow-y: auto;">
+            <div class="table-shell" style="flex: 1; overflow-y: auto; overflow-x: hidden; max-height: 400px;">
               <table>
                 <thead>
                   <tr>
@@ -1378,277 +1478,118 @@
           </div>
         </div>
 
-        <!-- Right Column: Setup Inputs & Summary -->
-        <div class="stack">
-          <!-- Expense Assumptions -->
-          <div class="panel pad" style="margin-bottom: 0;">
-            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
-              <div class="field">
-                <label for="monthlyExpenses" style="font-size: 9px;">Monthly Expenses</label>
-                <input id="monthlyExpenses" type="number" min="0" step="1000" value="80000" style="height: 26px; font-size: 12px;">
-              </div>
-              <div class="field">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                  <label for="expenseEscalation" style="font-size: 9px;">Escalation %</label>
-                  <input id="expenseEscalation" type="number" min="4" max="15" step="1" value="8" style="width: 40px; height: 18px; padding: 2px; font-size: 10px; text-align: right;">
-                </div>
-                <input id="expenseEscalationSlider" type="range" min="4" max="15" step="1" value="8" style="height: 12px; margin-top: 2px; margin-bottom: 2px;">
-              </div>
-            </div>
+        <!-- Right Column: Final Buckets Summary -->
+        <div class="panel pad" style="display: flex; flex-direction: column;">
+          <div class="section-head">
+            <h2>Final Buckets</h2>
           </div>
-
-          <!-- Investment Buckets -->
-          <div class="panel pad">
-            <div class="section-head">
-              <div>
-                <h2>Investment Buckets</h2>
-                <small>Return is yearly. Switch 'Use' to fund gaps.</small>
-              </div>
-              <button id="addBucket" class="btn" type="button">
-                <i data-lucide="plus"></i>Bucket
-              </button>
-            </div>
-
-            <div class="table-shell">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Bucket</th>
-                    <th>Start mo.</th>
-                    <th>Current value</th>
-                    <th>Return %</th>
-                    <th style="text-align: center; width: 60px;">Use</th>
-                    <th style="width: 50px;"></th>
-                  </tr>
-                </thead>
-                <tbody id="bucketRows"></tbody>
-              </table>
-            </div>
-          </div>
-
-          <!-- Income Streams -->
-          <div class="panel pad">
-            <div class="section-head">
-              <div>
-                <h2>Income Streams</h2>
-                <small>Amounts stay flat within a year and increment on anniversaries.</small>
-              </div>
-              <button id="addStream" class="btn" type="button">
-                <i data-lucide="plus"></i>Stream
-              </button>
-            </div>
-            <div class="table-shell">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Name</th>
-                    <th>Monthly</th>
-                    <th>Start mo.</th>
-                    <th>End mo.</th>
-                    <th>Growth %</th>
-                    <th style="width: 50px;"></th>
-                  </tr>
-                </thead>
-                <tbody id="streamRows"></tbody>
-              </table>
-            </div>
-            <div class="actions" style="display: flex; justify-content: flex-end; margin-top: 16px;">
-              <button id="recalculate" class="btn primary" type="button">
-                <i data-lucide="refresh-cw"></i>Update Projection
-              </button>
-            </div>
-          </div>
-
-          <!-- Final Buckets Summary -->
-          <div class="panel pad">
-            <div class="section-head">
-              <h2>Final Buckets</h2>
-            </div>
-            <div class="table-shell">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Bucket</th>
-                    <th>Final</th>
-                    <th style="text-align: center; width: 60px;">Use</th>
-                  </tr>
-                </thead>
-                <tbody id="bucketSummaryRows"></tbody>
-              </table>
-            </div>
+          <div class="table-shell" style="flex: 1; overflow-y: auto; overflow-x: hidden; max-height: 400px;">
+            <table>
+              <thead>
+                <tr>
+                  <th>Bucket</th>
+                  <th>Final</th>
+                  <th style="text-align: center; width: 60px;">Use</th>
+                </tr>
+              </thead>
+              <tbody id="bucketSummaryRows"></tbody>
+            </table>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- Tab 2: Calculators -->
-    <section id="calculatorsTab" class="tab-panel">
-      <!-- Metrics Grid at Top -->
-      <div class="metric-group" style="margin-bottom: 16px;">
-        <div class="metric-group-header">Affordable Spend Calculator</div>
-        <div class="metrics">
-          <div class="metric income-metric">
-            <div class="metric-head"><span>Affordable Spend</span><i data-lucide="sparkles"></i></div>
-            <strong id="affordMonthlyExpense">-</strong>
-            <small>Starting monthly amount</small>
-          </div>
-          <div class="metric accent-metric">
-            <div class="metric-head"><span>Year 1 Total Expense</span><i data-lucide="calendar"></i></div>
-            <strong id="affordYearOneExpense">-</strong>
-            <small>Annual draw in year 1</small>
-          </div>
-          <div class="metric income-metric">
-            <div class="metric-head"><span>Total Income</span><i data-lucide="wallet"></i></div>
-            <strong id="affordTotalIncome">-</strong>
-            <small>Nominal inflows total</small>
-          </div>
-          <div class="metric warning-metric">
-            <div class="metric-head"><span>Final Capital</span><i data-lucide="shield"></i></div>
-            <strong id="affordFinalCapital">-</strong>
-            <small>Projected ending value</small>
-          </div>
-        </div>
-      </div>
-
-      <!-- Inputs & Tables Layout -->
-      <div class="calculators-layout">
+    <!-- Tab 2: Inputs (Clean Inputs Hub) -->
+    <section id="inputsTab" class="tab-panel">
+      <div class="stack" style="max-width: 800px; margin: 0 auto; gap: 16px;">
+        <div class="metric-group-header" style="margin-bottom: 6px;">Dashboard Simulation Setup</div>
         
-        <!-- Left Column: Spend Inputs, Incomes, One-Off Inflows -->
-        <div class="stack" id="affordLeftCol">
-          <!-- Spend Inputs -->
-          <div class="panel pad" id="affordInputsCol">
-            <div class="section-head">
-              <div>
-                <h2>Spend Inputs</h2>
-                <small>Find starting monthly draw supported by assets.</small>
-              </div>
-              <button id="affordRecalculate" class="btn primary" type="button" style="height: 26px; font-size: 11px; padding: 0 10px;">
-                <i data-lucide="calculator" style="width: 12px; height: 12px;"></i>Calculate
-              </button>
+        <!-- General Assumptions -->
+        <div class="panel pad" style="margin-bottom: 0;">
+          <div class="assumptions-grid">
+            <div class="field">
+              <label for="currency" style="font-size: 9px;">Currency</label>
+              <input id="currency" type="text" maxlength="4" value="₹" style="height: 26px; font-size: 12px;">
             </div>
-            
-            <div class="tight-grid-col">
-              <div class="tight-grid">
-                <div class="field">
-                  <label for="affordCurrentCapital">Current Capital</label>
-                  <input id="affordCurrentCapital" type="number" min="0" step="1000" value="3000000">
-                </div>
-                <div class="field">
-                  <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <label for="affordReturn">Return %</label>
-                    <input id="affordReturn" type="number" min="4" max="15" step="1" value="6" style="width: 40px; height: 18px; padding: 2px; font-size: 10px; text-align: right;">
-                  </div>
-                  <input id="affordReturnSlider" type="range" min="4" max="15" step="1" value="6" style="height: 12px; margin-top: 2px; margin-bottom: 2px;">
-                </div>
-              </div>
-              
-              <div class="tight-grid-3">
-                <div class="field">
-                  <label for="affordEscalation">Escalation %</label>
-                  <input id="affordEscalation" type="number" step="0.1" value="8">
-                </div>
-                <div class="field">
-                  <label for="affordYears">Years</label>
-                  <input id="affordYears" type="number" min="1" max="80" step="1" value="25">
-                </div>
-                <div class="field">
-                  <label for="affordTableMode">Table View</label>
-                  <select id="affordTableMode">
-                    <option value="yearly">Yearly</option>
-                    <option value="monthly">Monthly</option>
-                  </select>
-                </div>
-              </div>
-              
-              <div class="field">
-                <label for="affordEndValue">Final Capital Wanted</label>
-                <input id="affordEndValue" type="number" min="0" step="1000" value="0">
-              </div>
+            <div class="field">
+              <label for="years" style="font-size: 9px;">Projection years</label>
+              <input id="years" type="number" min="1" max="60" step="1" value="25" style="height: 26px; font-size: 12px;">
             </div>
-          </div>
-
-          <!-- Incomes -->
-          <div class="panel pad">
-            <div class="section-head">
-              <div>
-                <h2>Incomes</h2>
-                <small>Monthly incomes during drawdown.</small>
+            <div class="field">
+              <label for="monthlyExpenses" style="font-size: 9px;">Monthly Expenses</label>
+              <input id="monthlyExpenses" type="number" min="0" step="1000" value="80000" style="height: 26px; font-size: 12px;">
+            </div>
+            <div class="field">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <label for="expenseEscalation" style="font-size: 9px;">Escalation %</label>
+                <input id="expenseEscalation" type="number" min="4" max="15" step="1" value="8" style="width: 40px; height: 18px; padding: 2px; font-size: 10px; text-align: right;">
               </div>
-              <button id="addAffordIncomeStream" class="btn" type="button" style="height: 26px; padding: 0 8px; font-size: 11px;">
-                <i data-lucide="plus" style="width: 12px; height: 12px;"></i>Stream
-              </button>
-            </div>
-            <div class="table-shell">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Name</th>
-                    <th>Monthly</th>
-                    <th style="width: 50px;">Years</th>
-                    <th style="width: 50px;">Grow%</th>
-                    <th style="width: 35px;"></th>
-                  </tr>
-                </thead>
-                <tbody id="affordIncomeRows"></tbody>
-              </table>
-            </div>
-          </div>
-
-          <!-- One-Off Inflows -->
-          <div class="panel pad">
-            <div class="section-head">
-              <div>
-                <h2>One-Off Inflows</h2>
-                <small>Lump sums at year-end.</small>
-              </div>
-              <button id="addAffordOneOff" class="btn" type="button" style="height: 26px; padding: 0 8px; font-size: 11px;">
-                <i data-lucide="plus" style="width: 12px; height: 12px;"></i>One-off
-              </button>
-            </div>
-            <div class="table-shell">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Label</th>
-                    <th style="width: 70px;">End Year</th>
-                    <th>Amount</th>
-                    <th style="width: 35px;"></th>
-                  </tr>
-                </thead>
-                <tbody id="affordOneOffRows"></tbody>
-              </table>
+              <input id="expenseEscalationSlider" type="range" min="4" max="15" step="1" value="8" style="height: 12px; margin-top: 2px; margin-bottom: 2px;">
             </div>
           </div>
         </div>
 
-        <!-- Right Column: Drawdown Table -->
-        <div class="stack" id="affordRightCol">
-          <!-- Drawdown Table -->
-          <div class="panel pad">
-            <div class="section-head">
-              <h2>Drawdown Table</h2>
-              <button id="exportCsvAfford" class="btn" style="height: 28px; padding: 0 8px; font-size: 11px;" type="button">
-                <i data-lucide="download" style="width: 12px; height: 12px;"></i> CSV
-              </button>
+        <!-- Investment Buckets -->
+        <div class="panel pad">
+          <div class="section-head">
+            <div>
+              <h2>Investment Buckets</h2>
+              <small>Return is yearly. Switch 'Use' to fund gaps.</small>
             </div>
-            <div class="table-shell" style="max-height: 520px; overflow-y: auto;">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Period</th>
-                    <th>Opening</th>
-                    <th>Income</th>
-                    <th>Return</th>
-                    <th>Expense</th>
-                    <th>Closing</th>
-                  </tr>
-                </thead>
-                <tbody id="affordRows"></tbody>
-              </table>
-            </div>
+            <button id="addBucket" class="btn" type="button">
+              <i data-lucide="plus"></i>Bucket
+            </button>
+          </div>
+
+          <div class="clean-table-shell">
+            <table class="clean-table">
+              <thead>
+                <tr>
+                  <th class="name-cell">Bucket</th>
+                  <th class="month-cell">Start mo.</th>
+                  <th class="amount-cell">Current value</th>
+                  <th class="rate-cell">Return %</th>
+                  <th class="switch-cell" style="text-align: center;">Use</th>
+                  <th style="width: 50px;"></th>
+                </tr>
+              </thead>
+              <tbody id="bucketRows"></tbody>
+            </table>
           </div>
         </div>
 
+        <!-- Income Streams -->
+        <div class="panel pad">
+          <div class="section-head">
+            <div>
+              <h2>Income Streams</h2>
+              <small>Amounts stay flat within a year and increment on anniversaries.</small>
+            </div>
+            <button id="addStream" class="btn" type="button">
+              <i data-lucide="plus"></i>Stream
+            </button>
+          </div>
+          <div class="clean-table-shell">
+            <table class="clean-table">
+              <thead>
+                <tr>
+                  <th class="name-cell">Name</th>
+                  <th class="amount-cell">Monthly</th>
+                  <th class="month-cell">Start mo.</th>
+                  <th class="month-cell">End mo.</th>
+                  <th class="rate-cell">Growth %</th>
+                  <th style="width: 50px;"></th>
+                </tr>
+              </thead>
+              <tbody id="streamRows"></tbody>
+            </table>
+          </div>
+          <div class="actions" style="display: flex; justify-content: flex-end; margin-top: 16px;">
+            <button id="recalculate" class="btn primary" type="button">
+              <i data-lucide="refresh-cw"></i>Update Projection
+            </button>
+          </div>
+        </div>
       </div>
     </section>
   </main>
@@ -1689,35 +1630,21 @@
     </tr>
   </template>
 
-  <template id="affordIncomeTemplate">
-    <tr>
-      <td class="name-cell"><input class="afford-income-name" type="text" placeholder="Income Name"></td>
-      <td class="amount-cell"><input class="afford-income-amount" type="number" min="0" step="1000"></td>
-      <td class="month-cell"><input class="afford-income-years" type="number" min="1" step="1"></td>
-      <td class="rate-cell"><input class="afford-income-growth" type="number" step="0.1"></td>
-      <td>
-        <button class="btn danger-outline remove" type="button">
-          <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i>
-        </button>
-      </td>
-    </tr>
-  </template>
 
-  <template id="affordOneOffTemplate">
-    <tr>
-      <td class="name-cell"><input class="afford-oneoff-name" type="text" placeholder="Lump Sum Name"></td>
-      <td class="month-cell"><input class="afford-oneoff-year" type="number" min="1" step="1"></td>
-      <td class="amount-cell"><input class="afford-oneoff-amount" type="number" min="0" step="1000"></td>
-      <td>
-        <button class="btn danger-outline remove" type="button">
-          <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i>
-        </button>
-      </td>
-    </tr>
-  </template>
 
   <!-- Script Logic -->
   <script>
+    // Safe icons helper
+    function safeCreateIcons() {
+      if (typeof lucide !== 'undefined' && typeof lucide.createIcons === 'function') {
+        try {
+          lucide.createIcons();
+        } catch (e) {
+          console.error("Lucide failed to create icons:", e);
+        }
+      }
+    }
+
     // Elements mapping
     const els = {
       currency: document.getElementById("currency"),
@@ -1734,12 +1661,10 @@
       status: document.getElementById("status"),
       totalAssets: document.getElementById("totalAssets"),
       liquidAssets: document.getElementById("liquidAssets"),
-      weightedReturn: document.getElementById("weightedReturn"),
-      requiredCorpus: document.getElementById("requiredCorpus"),
-      requiredCorpusCard: document.getElementById("requiredCorpusCard"),
-      requiredCorpusHead: document.getElementById("requiredCorpusHead"),
-      requiredCorpusSubtitle: document.getElementById("requiredCorpusSubtitle"),
+      affordableSpend: document.getElementById("affordableSpend"),
       escapeCapital: document.getElementById("escapeCapital"),
+      escapeCapitalMonthly: document.getElementById("escapeCapitalMonthly"),
+      affordableSpendFromAssets: document.getElementById("affordableSpendFromAssets"),
       pvIncomeStreams: document.getElementById("pvIncomeStreams"),
       pvIncomeStreamsSubtitle: document.getElementById("pvIncomeStreamsSubtitle"),
       liquidAssetsSubtitle: document.getElementById("liquidAssetsSubtitle"),
@@ -1747,6 +1672,7 @@
       firstGapSubtitle: document.getElementById("firstGapSubtitle"),
       finalAssets: document.getElementById("finalAssets"),
       finalAssetsSubtitle: document.getElementById("finalAssetsSubtitle"),
+      finalAssetsSensitivity: document.getElementById("finalAssetsSensitivity"),
       liveReturn24h: document.getElementById("liveReturn24h"),
       liveExpense24h: document.getElementById("liveExpense24h"),
       liveExpenseToReturnPct: document.getElementById("liveExpenseToReturnPct"),
@@ -1760,33 +1686,10 @@
       bucketTemplate: document.getElementById("bucketTemplate"),
       streamTemplate: document.getElementById("streamTemplate"),
       canvas: document.getElementById("projectionChart"),
-      
-      affordCurrentCapital: document.getElementById("affordCurrentCapital"),
-      affordReturn: document.getElementById("affordReturn"),
-      affordReturnSlider: document.getElementById("affordReturnSlider"),
-      affordEscalation: document.getElementById("affordEscalation"),
-      affordYears: document.getElementById("affordYears"),
-      affordEndValue: document.getElementById("affordEndValue"),
-      affordTableMode: document.getElementById("affordTableMode"),
-      affordRecalculate: document.getElementById("affordRecalculate"),
-      addAffordIncomeStream: document.getElementById("addAffordIncomeStream"),
-      addAffordOneOff: document.getElementById("addAffordOneOff"),
-      affordIncomeRows: document.getElementById("affordIncomeRows"),
-      affordOneOffRows: document.getElementById("affordOneOffRows"),
-      affordIncomeTemplate: document.getElementById("affordIncomeTemplate"),
-      affordOneOffTemplate: document.getElementById("affordOneOffTemplate"),
-      affordMonthlyExpense: document.getElementById("affordMonthlyExpense"),
-      affordYearOneExpense: document.getElementById("affordYearOneExpense"),
-      affordTotalIncome: document.getElementById("affordTotalIncome"),
-      affordFinalCapital: document.getElementById("affordFinalCapital"),
-      affordRows: document.getElementById("affordRows"),
-      
       themeToggleBtn: document.getElementById("themeToggleBtn"),
       themeSunIcon: document.getElementById("themeSunIcon"),
       themeMoonIcon: document.getElementById("themeMoonIcon"),
-      
       exportCsvDashboard: document.getElementById("exportCsvDashboard"),
-      exportCsvAfford: document.getElementById("exportCsvAfford"),
     };
 
     let lastProjection = [];
@@ -1839,9 +1742,12 @@
         row.remove();
         calculate();
       });
-      row.querySelectorAll("input").forEach(input => input.addEventListener("input", calculate));
+      row.querySelectorAll("input").forEach(input => {
+        input.addEventListener("input", calculate);
+        input.addEventListener("change", calculate);
+      });
       els.bucketRows.appendChild(row);
-      lucide.createIcons();
+      safeCreateIcons();
     }
 
     // Add row helper for income streams
@@ -1857,9 +1763,12 @@
         row.remove();
         calculate();
       });
-      row.querySelectorAll("input").forEach(input => input.addEventListener("input", calculate));
+      row.querySelectorAll("input").forEach(input => {
+        input.addEventListener("input", calculate);
+        input.addEventListener("change", calculate);
+      });
       els.streamRows.appendChild(row);
-      lucide.createIcons();
+      safeCreateIcons();
     }
 
     // Data Collection Helpers
@@ -1935,25 +1844,23 @@
       }
     }
 
-    // Main Calculator function
-    function calculate() {
-      const months = Math.max(12, Math.floor(numberFrom(els.years) * 12));
-      const expenseEscalationYearly = numberFrom(els.expenseEscalation) / 100;
-      const baseExpense = Math.max(0, numberFrom(els.monthlyExpenses));
-      const streams = collectStreams();
-      const buckets = collectBuckets().map(bucket => ({
-        ...bucket,
-        value: bucket.start === 0 ? bucket.initialValue : 0,
-        activated: bucket.start === 0,
+    // Helper to simulate the projection over the years
+    function runSimulation(rawBuckets, streams, months, baseExpense, expenseEscalationYearly, returnOffset = 0) {
+      const buckets = rawBuckets.map(b => ({
+        ...b,
+        value: b.start === 0 ? b.initialValue : 0,
+        activated: b.start === 0,
+        annualReturn: b.annualReturn + returnOffset,
       }));
-      const untouchedBuckets = collectBuckets()
-        .filter(bucket => !bucket.liquid)
-        .map(bucket => ({
-          ...bucket,
-          value: bucket.start === 0 ? bucket.initialValue : 0,
-          activated: bucket.start === 0,
+      const untouchedBuckets = rawBuckets
+        .filter(b => !b.liquid)
+        .map(b => ({
+          ...b,
+          value: b.start === 0 ? b.initialValue : 0,
+          activated: b.start === 0,
+          annualReturn: b.annualReturn + returnOffset,
         }));
-      
+
       const opening = totals(buckets);
       const monthlyDiscount = Math.pow(1 + opening.weightedLiquidReturn, 1 / 12) - 1;
       const yearly = [];
@@ -2014,7 +1921,34 @@
         yearly[yearIndex].liquid = current.liquid;
       }
 
+      const finalUntouchedTotal = totals(untouchedBuckets).total;
+      return {
+        yearly,
+        firstGapMonth,
+        requiredToday,
+        assetsZeroMonth,
+        opening,
+        finalUntouchedTotal,
+        buckets,
+        finalTotal: (yearly[yearly.length - 1] || { total: 0 }).total
+      };
+    }
+
+    // Main Calculator function
+    function calculate() {
+      const rawBuckets = collectBuckets();
+      const streams = collectStreams();
+      const months = Math.max(12, Math.floor(numberFrom(els.years) * 12));
+      const expenseEscalationYearly = numberFrom(els.expenseEscalation) / 100;
+      const baseExpense = Math.max(0, numberFrom(els.monthlyExpenses));
+
+      const sim = runSimulation(rawBuckets, streams, months, baseExpense, expenseEscalationYearly, 0);
+      const sens = runSimulation(rawBuckets, streams, months, baseExpense, expenseEscalationYearly, 0.01);
+      
+      const finalAssetsDiff = sens.finalTotal - sim.finalTotal;
+
       // Calculate Escape Capital (Initial Capital Needed) based on Tab 1 inputs
+      const monthlyDiscount = Math.pow(1 + sim.opening.weightedLiquidReturn, 1 / 12) - 1;
       let escapeCapitalNeeded = 0;
       for (let month = 0; month < months; month++) {
         const yearIndex = Math.floor(month / 12);
@@ -2030,15 +1964,23 @@
         pvOfIncomes += income / Math.pow(1 + monthlyDiscount, month + 1);
       }
 
-      const finalUntouchedTotal = totals(untouchedBuckets).total;
+      // Calculate affordable monthly spend
+      let expenseFactor = 0;
+      for (let month = 0; month < months; month++) {
+        const yearIndex = Math.floor(month / 12);
+        expenseFactor += Math.pow(1 + expenseEscalationYearly, yearIndex) / Math.pow(1 + monthlyDiscount, month + 1);
+      }
+      const totalAvailablePV = sim.opening.liquid + pvOfIncomes;
+      const affordableMonthlySpend = expenseFactor > 0 ? totalAvailablePV / expenseFactor : 0;
 
-      lastProjection = yearly;
-      lastBuckets = buckets;
-      renderMetrics(opening, yearly, firstGapMonth, requiredToday, escapeCapitalNeeded, pvOfIncomes, assetsZeroMonth, finalUntouchedTotal);
+      lastProjection = sim.yearly;
+      lastBuckets = sim.buckets;
+      const spendFromAssets = expenseFactor > 0 ? sim.opening.liquid / expenseFactor : 0;
+      renderMetrics(sim.opening, sim.yearly, sim.firstGapMonth, sim.requiredToday, escapeCapitalNeeded, pvOfIncomes, sim.assetsZeroMonth, sim.finalUntouchedTotal, affordableMonthlySpend, finalAssetsDiff, baseExpense, spendFromAssets);
       renderChart();
-      renderTables(yearly, buckets);
+      renderTables(sim.yearly, sim.buckets);
 
-      startLiveTicker(opening.liquid, opening.weightedLiquidReturn, baseExpense, requiredToday, streams);
+      startLiveTicker(sim.opening.liquid, sim.opening.weightedLiquidReturn, baseExpense, sim.requiredToday, streams);
       saveConfig();
     }
 
@@ -2097,65 +2039,42 @@
     }
 
     // Render Metric displays & Alert box
-    function renderMetrics(opening, yearly, firstGapMonth, requiredToday, escapeCapitalNeeded, pvOfIncomes, assetsZeroMonth, finalUntouchedTotal) {
+    function renderMetrics(opening, yearly, firstGapMonth, requiredToday, escapeCapitalNeeded, pvOfIncomes, assetsZeroMonth, finalUntouchedTotal, affordableMonthlySpend, finalAssetsDiff, baseExpense, spendFromAssets) {
       const final = yearly[yearly.length - 1] || { income: 0, expenses: 0, total: 0, liquid: 0 };
       const coverage = final.expenses > 0 ? final.income / final.expenses : 0;
 
       if (els.totalAssets) els.totalAssets.textContent = formatMoney(opening.total);
       if (els.liquidAssets) els.liquidAssets.textContent = formatMoney(opening.liquid);
-      if (els.weightedReturn) els.weightedReturn.textContent = pct(opening.weightedLiquidReturn);
-      // Calculate net value: Required Corpus - Spendable Assets
-      const netGap = requiredToday - opening.liquid;
-
-      if (netGap > 0) {
-        // Shortfall (Assets are not enough)
-        if (els.requiredCorpusCard) {
-          els.requiredCorpusCard.className = "metric expense-metric";
-        }
-        if (els.requiredCorpusHead) {
-          els.requiredCorpusHead.innerHTML = `<span>Capital Shortfall</span><i data-lucide="trending-down"></i>`;
-        }
-        if (els.requiredCorpusSubtitle) {
-          els.requiredCorpusSubtitle.textContent = `Add ${formatMoney(netGap)} to be fully funded`;
-        }
-        els.requiredCorpus.textContent = formatMoney(netGap);
-      } else {
-        // Surplus / Safety Cushion (Assets cover or exceed required corpus)
-        const surplus = Math.abs(netGap);
-        if (els.requiredCorpusCard) {
-          els.requiredCorpusCard.className = "metric income-metric";
-        }
-        if (els.requiredCorpusHead) {
-          els.requiredCorpusHead.innerHTML = `<span>Safety Cushion</span><i data-lucide="trending-up"></i>`;
-        }
-        if (els.requiredCorpusSubtitle) {
-          els.requiredCorpusSubtitle.textContent = `${formatMoney(surplus)} above required corpus`;
-        }
-        els.requiredCorpus.textContent = formatMoney(surplus);
-      }
       if (els.escapeCapital) els.escapeCapital.textContent = formatMoney(escapeCapitalNeeded);
+      if (els.escapeCapitalMonthly) els.escapeCapitalMonthly.textContent = formatMoney(baseExpense, false);
+      if (els.affordableSpendFromAssets) els.affordableSpendFromAssets.textContent = formatMoney(spendFromAssets, false);
+      if (els.affordableSpend) els.affordableSpend.textContent = formatMoney(affordableMonthlySpend, false);
 
-      // Update Income Streams (PV)
+      const cumulativeValue = pvOfIncomes + opening.liquid;
+
+      // Update Income Streams (PV) to display cumulative income streams plus spendable assets
       if (els.pvIncomeStreams) {
-        els.pvIncomeStreams.textContent = formatMoney(pvOfIncomes);
+        els.pvIncomeStreams.textContent = formatMoney(cumulativeValue);
       }
       if (els.pvIncomeStreamsSubtitle) {
-        const incomeGap = escapeCapitalNeeded - pvOfIncomes;
-        if (incomeGap > 0) {
-          els.pvIncomeStreamsSubtitle.textContent = `Gap: ${formatMoney(incomeGap)}`;
+        const totalGap = escapeCapitalNeeded - cumulativeValue;
+        if (totalGap > 0) {
+          els.pvIncomeStreamsSubtitle.textContent = `Gap: ${formatMoney(totalGap)}`;
+          els.pvIncomeStreamsSubtitle.className = "bad-text";
         } else {
-          els.pvIncomeStreamsSubtitle.textContent = `Surplus: ${formatMoney(Math.abs(incomeGap))}`;
+          els.pvIncomeStreamsSubtitle.textContent = `Surplus: ${formatMoney(Math.abs(totalGap))}`;
+          els.pvIncomeStreamsSubtitle.className = "good-text";
         }
       }
 
-      // Update Spendable Assets subtitle gap (Escape Capital - PV of Incomes - Spendable Assets)
       if (els.liquidAssetsSubtitle) {
-        const assetGap = escapeCapitalNeeded - pvOfIncomes - opening.liquid;
-        if (assetGap > 0) {
-          els.liquidAssetsSubtitle.textContent = `Gap: ${formatMoney(assetGap)}`;
+        const assetOnlyGap = escapeCapitalNeeded - opening.liquid;
+        if (assetOnlyGap > 0) {
+          els.liquidAssetsSubtitle.textContent = `Gap: ${formatMoney(assetOnlyGap)}`;
         } else {
-          els.liquidAssetsSubtitle.textContent = `Surplus: ${formatMoney(Math.abs(assetGap))}`;
+          els.liquidAssetsSubtitle.textContent = `Surplus: ${formatMoney(Math.abs(assetOnlyGap))}`;
         }
+        els.liquidAssetsSubtitle.className = "";
       }
 
       els.firstGap.textContent = firstGapMonth === null ? "No gap" : `Month ${firstGapMonth + 1}`;
@@ -2182,24 +2101,28 @@
         }
       }
 
+      if (els.finalAssetsSensitivity) {
+        els.finalAssetsSensitivity.textContent = formatMoney(finalAssetsDiff, true);
+      }
+
       // Status Styling
       els.status.className = "status-panel";
       if (firstGapMonth === null) {
         els.status.classList.add("comfortable");
-        els.status.innerHTML = `<span class="status-title"><i data-lucide="check-circle"></i>Looks comfortable:</span> <span class="status-desc">Income covers expenses throughout this projection. Surpluses are reinvested.</span>`;
+        els.status.innerHTML = `<div><span class="status-title"><i data-lucide="check-circle"></i>Looks comfortable:</span> <span class="status-desc">Income covers expenses throughout this projection. Surpluses are reinvested.</span></div>`;
       } else if (final.liquid >= 0 && opening.liquid >= requiredToday) {
         els.status.classList.add("warning");
-        els.status.innerHTML = `<span class="status-title"><i data-lucide="alert-triangle"></i>Gaps appear, but corpus covers them:</span> <span class="status-desc">Required corpus is ${formatMoney(requiredToday)} against spendable assets of ${formatMoney(opening.liquid)}. Final-year income coverage is ${(coverage * 100).toFixed(0)}%.</span>`;
+        els.status.innerHTML = `<div><span class="status-title"><i data-lucide="alert-triangle"></i>Gaps appear, but corpus covers them:</span> <span class="status-desc">Required corpus is ${formatMoney(requiredToday)} against spendable assets of ${formatMoney(opening.liquid)}. Final-year income coverage is ${(coverage * 100).toFixed(0)}%.</span></div>`;
        } else {
         els.status.className = "status-panel";
         els.status.classList.add("danger");
-        els.status.innerHTML = `<span class="status-title"><i data-lucide="x-circle"></i>Needs more spendable cushion:</span> <span class="status-desc">Required corpus is ${formatMoney(requiredToday)}, exceeding spendable assets by ${formatMoney(requiredToday - opening.liquid)}.</span>`;
+        els.status.innerHTML = `<div><span class="status-title"><i data-lucide="x-circle"></i>Needs more spendable cushion:</span> <span class="status-desc">Required corpus is ${formatMoney(requiredToday)}, exceeding spendable assets by ${formatMoney(requiredToday - opening.liquid)}.</span></div>`;
       }
 
       // Update Gamified Progress
       updateGamifiedProgress();
 
-      lucide.createIcons();
+      safeCreateIcons();
     }
 
     // ==========================================
@@ -2261,7 +2184,7 @@
           gameBearBubble.textContent = "Need honey! ⚠️";
         }
       }
-      lucide.createIcons();
+      safeCreateIcons();
     }
 
     // Render results tables
@@ -2288,6 +2211,10 @@
     // Render interactive chart via Chart.js
     function renderChart() {
       if (!lastProjection.length) return;
+      if (typeof Chart === 'undefined') {
+        console.warn("Chart.js is not loaded.");
+        return;
+      }
       
       const isDark = document.documentElement.getAttribute("data-theme") === "dark";
       const gridColor = isDark ? "#334155" : "#e2e8f0";
@@ -2458,153 +2385,7 @@
       els.chartNote.textContent = yearlyMode ? "Yearly totals (Flow on Left Y-Axis, Assets on Right Y-Axis)" : "Monthly run rate (Flow on Left Y-Axis, Assets on Right Y-Axis)";
     }
 
-    // ==========================================
-    // AFFORDABLE SPEND TAB CALCULATION AND LOGIC
-    // ==========================================
-    function addAffordIncomeRow(data = {}) {
-      const row = els.affordIncomeTemplate.content.firstElementChild.cloneNode(true);
-      row.querySelector(".afford-income-name").value = data.name ?? "Income Stream";
-      row.querySelector(".afford-income-amount").value = data.amount ?? 0;
-      row.querySelector(".afford-income-years").value = data.years ?? 5;
-      row.querySelector(".afford-income-growth").value = data.growth ?? 0;
-      
-      row.querySelector(".remove").addEventListener("click", () => {
-        row.remove();
-        calculateAffordableSpend();
-      });
-      row.querySelectorAll("input").forEach(input => input.addEventListener("input", calculateAffordableSpend));
-      els.affordIncomeRows.appendChild(row);
-      lucide.createIcons();
-    }
 
-    function addAffordOneOffRow(data = {}) {
-      const row = els.affordOneOffTemplate.content.firstElementChild.cloneNode(true);
-      row.querySelector(".afford-oneoff-name").value = data.name ?? "One-off Cash";
-      row.querySelector(".afford-oneoff-year").value = data.year ?? 5;
-      row.querySelector(".afford-oneoff-amount").value = data.amount ?? 0;
-      
-      row.querySelector(".remove").addEventListener("click", () => {
-        row.remove();
-        calculateAffordableSpend();
-      });
-      row.querySelectorAll("input").forEach(input => input.addEventListener("input", calculateAffordableSpend));
-      els.affordOneOffRows.appendChild(row);
-      lucide.createIcons();
-    }
-
-    // Dynamic stream collect
-    function collectAffordableIncomeStreams() {
-      return [...els.affordIncomeRows.querySelectorAll("tr")].map(row => ({
-        name: row.querySelector(".afford-income-name").value.trim() || "Income",
-        amount: Math.max(0, numberFrom(row.querySelector(".afford-income-amount"))),
-        years: Math.max(1, Math.floor(numberFrom(row.querySelector(".afford-income-years")))),
-        growth: numberFrom(row.querySelector(".afford-income-growth")) / 100,
-      }));
-    }
-
-    // lump sums are added at end of the target year index
-    function collectAffordableOneOffs() {
-      return [...els.affordOneOffRows.querySelectorAll("tr")].map(row => ({
-        name: row.querySelector(".afford-oneoff-name").value.trim() || "One-off",
-        year: Math.max(1, Math.floor(numberFrom(row.querySelector(".afford-oneoff-year")))),
-        amount: Math.max(0, numberFrom(row.querySelector(".afford-oneoff-amount"))),
-      }));
-    }
-
-    function affordableRecurringIncomeForMonth(streams, month) {
-      const year = Math.floor(month / 12) + 1;
-      return streams.reduce((total, stream) => {
-        if (year > stream.years) return total;
-        return total + stream.amount * Math.pow(1 + stream.growth, year - 1);
-      }, 0);
-    }
-
-    // lump sums are added at end of the target year index
-    function affordableOneOffForMonth(oneOffs, month) {
-      const year = Math.floor(month / 12) + 1;
-      const isYearEnd = month % 12 === 11;
-      if (!isYearEnd) return 0;
-      return oneOffs.reduce((total, item) => total + (item.year === year ? item.amount : 0), 0);
-    }
-
-    function calculateAffordableSpend() {
-      const months = Math.max(1, Math.floor(numberFrom(els.affordYears) * 12));
-      const currentCapital = Math.max(0, numberFrom(els.affordCurrentCapital));
-      const desiredEnd = Math.max(0, numberFrom(els.affordEndValue));
-      const monthlyReturn = Math.pow(1 + numberFrom(els.affordReturn) / 100, 1 / 12) - 1;
-      const annualEscalation = numberFrom(els.affordEscalation) / 100;
-      const incomeStreams = collectAffordableIncomeStreams();
-      const oneOffs = collectAffordableOneOffs();
-
-      let futureValueOfCapitalAndIncome = currentCapital * Math.pow(1 + monthlyReturn, months);
-      let expenseFactor = 0;
-      for (let month = 0; month < months; month++) {
-        const year = Math.floor(month / 12) + 1;
-        const monthsToEnd = months - month - 1;
-        const growthToEnd = Math.pow(1 + monthlyReturn, monthsToEnd);
-        const income = affordableRecurringIncomeForMonth(incomeStreams, month) + affordableOneOffForMonth(oneOffs, month);
-        futureValueOfCapitalAndIncome += income * growthToEnd;
-        expenseFactor += Math.pow(1 + annualEscalation, year - 1) * growthToEnd;
-      }
-
-      const affordableMonthly = Math.max(0, (futureValueOfCapitalAndIncome - desiredEnd) / Math.max(1, expenseFactor));
-      const rows = [];
-      let capital = currentCapital;
-      let totalIncome = 0;
-      
-      for (let month = 0; month < months; month++) {
-        const year = Math.floor(month / 12) + 1;
-        const opening = capital;
-        const income = affordableRecurringIncomeForMonth(incomeStreams, month) + affordableOneOffForMonth(oneOffs, month);
-        const returnAmount = opening * monthlyReturn;
-        const expense = affordableMonthly * Math.pow(1 + annualEscalation, year - 1);
-        capital = opening + returnAmount + income - expense;
-        totalIncome += income;
-        rows.push({ month: month + 1, year, opening, income, returnAmount, expense, closing: capital });
-      }
-
-      els.affordMonthlyExpense.textContent = formatMoney(affordableMonthly);
-      els.affordYearOneExpense.textContent = formatMoney(affordableMonthly * 12);
-      els.affordTotalIncome.textContent = formatMoney(totalIncome);
-      els.affordFinalCapital.textContent = formatMoney(capital);
-      renderAffordableRows(rows);
-      saveConfig();
-    }
-
-    function renderAffordableRows(rows) {
-      if (els.affordTableMode.value === "monthly") {
-        els.affordRows.innerHTML = rows.map(row => `<tr>
-          <td style="text-align: left;">Month ${row.month}</td>
-          <td>${formatMoney(row.opening, false)}</td>
-          <td class="good-text">+${formatMoney(row.income, false)}</td>
-          <td class="good-text">+${formatMoney(row.returnAmount, false)}</td>
-          <td class="bad-text">-${formatMoney(row.expense, false)}</td>
-          <td style="font-weight:600;">${formatMoney(row.closing, false)}</td>
-        </tr>`).join("");
-        return;
-      }
-
-      const yearly = [];
-      rows.forEach(row => {
-        const index = row.year - 1;
-        if (!yearly[index]) {
-          yearly[index] = { year: row.year, opening: row.opening, income: 0, returnAmount: 0, expense: 0, closing: row.closing };
-        }
-        yearly[index].income += row.income;
-        yearly[index].returnAmount += row.returnAmount;
-        yearly[index].expense += row.expense;
-        yearly[index].closing = row.closing;
-      });
-
-      els.affordRows.innerHTML = yearly.map(row => `<tr>
-        <td style="text-align: left; font-weight: 600;">Year ${row.year}</td>
-        <td>${formatMoney(row.opening, false)}</td>
-        <td class="good-text">+${formatMoney(row.income, false)}</td>
-        <td class="good-text">+${formatMoney(row.returnAmount, false)}</td>
-        <td class="bad-text">-${formatMoney(row.expense, false)}</td>
-        <td style="font-weight:600;">${formatMoney(row.closing, false)}</td>
-      </tr>`).join("");
-    }
 
     // ==========================================
     // NAVIGATION / TABS SWITCHING
@@ -2621,8 +2402,6 @@
       
       if (tabId === "dashboardTab") {
         setTimeout(renderChart, 50); // Small delay to let container resize
-      } else if (tabId === "calculatorsTab") {
-        calculateAffordableSpend();
       }
     }
 
@@ -2748,23 +2527,6 @@
       }));
     }
 
-    function collectAffordableIncomeStreamsRaw() {
-      return [...els.affordIncomeRows.querySelectorAll("tr")].map(row => ({
-        name: row.querySelector(".afford-income-name").value.trim(),
-        amount: numberFrom(row.querySelector(".afford-income-amount")),
-        years: numberFrom(row.querySelector(".afford-income-years")),
-        growth: numberFrom(row.querySelector(".afford-income-growth")),
-      }));
-    }
-
-    function collectAffordableOneOffsRaw() {
-      return [...els.affordOneOffRows.querySelectorAll("tr")].map(row => ({
-        name: row.querySelector(".afford-oneoff-name").value.trim(),
-        year: numberFrom(row.querySelector(".afford-oneoff-year")),
-        amount: numberFrom(row.querySelector(".afford-oneoff-amount")),
-      }));
-    }
-
     function saveConfig() {
       try {
         const config = {
@@ -2776,16 +2538,6 @@
           
           buckets: collectBucketsRaw(),
           streams: collectStreamsRaw(),
-
-          affordCurrentCapital: numberFrom(els.affordCurrentCapital),
-          affordReturn: numberFrom(els.affordReturn),
-          affordEscalation: numberFrom(els.affordEscalation),
-          affordYears: numberFrom(els.affordYears),
-          affordEndValue: numberFrom(els.affordEndValue),
-          affordTableMode: els.affordTableMode.value,
-          
-          affordStreams: collectAffordableIncomeStreamsRaw(),
-          affordOneOffs: collectAffordableOneOffsRaw()
         };
         localStorage.setItem("financial_planner_config", JSON.stringify(config));
       } catch (e) {
@@ -2799,7 +2551,7 @@
       try {
         const config = JSON.parse(dataStr);
         
-        // Restore Tab 1 controls
+        // Restore controls
         if (config.currency !== undefined) els.currency.value = config.currency;
         if (config.years !== undefined) els.years.value = config.years;
         if (config.monthlyExpenses !== undefined) els.monthlyExpenses.value = config.monthlyExpenses;
@@ -2809,7 +2561,7 @@
         }
         if (config.chartMode !== undefined) els.chartMode.value = config.chartMode;
         
-        // Restore Tab 1 tables
+        // Restore tables
         if (config.buckets) {
           els.bucketRows.innerHTML = "";
           config.buckets.forEach(addBucketRow);
@@ -2817,27 +2569,6 @@
         if (config.streams) {
           els.streamRows.innerHTML = "";
           config.streams.forEach(addStreamRow);
-        }
-
-        // Restore Tab 3 controls
-        if (config.affordCurrentCapital !== undefined) els.affordCurrentCapital.value = config.affordCurrentCapital;
-        if (config.affordReturn !== undefined) {
-          els.affordReturn.value = config.affordReturn;
-          els.affordReturnSlider.value = config.affordReturn;
-        }
-        if (config.affordEscalation !== undefined) els.affordEscalation.value = config.affordEscalation;
-        if (config.affordYears !== undefined) els.affordYears.value = config.affordYears;
-        if (config.affordEndValue !== undefined) els.affordEndValue.value = config.affordEndValue;
-        if (config.affordTableMode !== undefined) els.affordTableMode.value = config.affordTableMode;
-        
-        // Restore Tab 3 tables
-        if (config.affordStreams) {
-          els.affordIncomeRows.innerHTML = "";
-          config.affordStreams.forEach(addAffordIncomeRow);
-        }
-        if (config.affordOneOffs) {
-          els.affordOneOffRows.innerHTML = "";
-          config.affordOneOffs.forEach(addAffordOneOffRow);
         }
         
         return true;
@@ -2849,23 +2580,20 @@
 
     // Load baseline data on startup
     function loadDefaultData() {
-      // Check if there's saved data first
       if (loadConfig()) {
-        // Recalculate everything
         calculate();
-        calculateAffordableSpend();
         
-        // Restore active tab
         let activeTab = localStorage.getItem("financial_planner_active_tab");
-        if (activeTab === "capitalTab" || activeTab === "affordTab") {
-          activeTab = "calculatorsTab";
+        if (activeTab === "capitalTab" || activeTab === "affordTab" || activeTab === "calculatorsTab" || activeTab === "copyTab") {
+          activeTab = "inputsTab";
         }
         if (activeTab) {
           switchTab(activeTab);
         }
         return;
       }
-      // Dashboard Tab Defaults
+      
+      // Defaults
       els.years.value = 25;
       els.monthlyExpenses.value = 80000;
       els.expenseEscalation.value = 8;
@@ -2887,30 +2615,7 @@
         { name: "Future income", amount: 50000, start: 36, growth: 4 },
       ].forEach(addStreamRow);
 
-
-
-      // Affordable Spend Tab Defaults
-      els.affordCurrentCapital.value = 3000000;
-      els.affordReturn.value = 8;
-      els.affordReturnSlider.value = 8;
-      els.affordEscalation.value = 8;
-      els.affordYears.value = 25;
-      els.affordEndValue.value = 0;
-      
-      els.affordIncomeRows.innerHTML = "";
-      [
-        { name: "Salary", amount: 100000, years: 5, growth: 8 },
-        { name: "Second income", amount: 30000, years: 5, growth: 5 },
-      ].forEach(addAffordIncomeRow);
-      
-      els.affordOneOffRows.innerHTML = "";
-      [
-        { name: "Bonus / maturity", year: 5, amount: 0 }
-      ].forEach(addAffordOneOffRow);
-
-      // Recalculate everything
       calculate();
-      calculateAffordableSpend();
     }
 
     // ==========================================
@@ -2940,36 +2645,19 @@
     });
 
     els.recalculate.addEventListener("click", calculate);
-    els.chartMode.addEventListener("change", renderChart);
     
     // Bind sensitivity sliders
     bindSync(els.expenseEscalation, els.expenseEscalationSlider, calculate);
-    bindSync(els.affordReturn, els.affordReturnSlider, calculateAffordableSpend);
 
     // Input listeners to auto calculate (ignoring the slider-synchronized fields to avoid double-runs)
-    document.querySelectorAll(".topbar input, .topbar select, #monthlyExpenses").forEach(input => {
+    document.querySelectorAll("#currency, #years, #chartMode, #monthlyExpenses").forEach(input => {
       if (input.id !== "expenseEscalation") {
         input.addEventListener("input", calculate);
       }
     });
 
-
-
-    document.querySelectorAll("#affordInputsCol input, #affordInputsCol select").forEach(input => {
-      if (input.id !== "affordReturn") {
-        input.addEventListener("input", calculateAffordableSpend);
-      }
-    });
-
-    els.addAffordIncomeStream.addEventListener("click", () => {
-      addAffordIncomeRow({ name: "Income stream", amount: 100000, years: 5, growth: 8 });
-      calculateAffordableSpend();
-    });
-
-    els.addAffordOneOff.addEventListener("click", () => {
-      addAffordOneOffRow({ name: "One-off", year: 5, amount: 0 });
-      calculateAffordableSpend();
-    });
+    // Bind chartMode
+    els.chartMode.addEventListener("change", renderChart);
 
     // Export CSV clicks
     els.exportCsvDashboard.addEventListener("click", () => {
@@ -2977,17 +2665,6 @@
         els.projectionRows, 
         ["Year", "Income", "Expenses", "Gap", "Spendable", "Total Assets"], 
         "yearly_projection.csv"
-      );
-    });
-
-
-
-    els.exportCsvAfford.addEventListener("click", () => {
-      const mode = els.affordTableMode.value;
-      exportTableToCsv(
-        els.affordRows,
-        [mode === "yearly" ? "Year" : "Month", "Opening Capital", "Incomes", "Returns Generated", "Expenses Withdrawn", "Closing Capital"],
-        "affordable_drawdown.csv"
       );
     });
 
