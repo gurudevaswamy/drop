@@ -733,6 +733,26 @@
       font-weight: 400;
     }
 
+    .kpi-help {
+      display: none;
+      margin-top: 6px;
+      padding-top: 6px;
+      border-top: 1px solid var(--border-color);
+      color: var(--text-secondary);
+      font-size: 10px;
+      line-height: 1.25;
+    }
+
+    body.explain-kpis .metric[data-help] .kpi-help {
+      display: block;
+    }
+
+    body.explain-kpis #explainKpisBtn {
+      border-color: var(--accent-color);
+      color: var(--accent-color);
+      background: rgba(59, 130, 246, 0.08);
+    }
+
     /* Color Coded Metric Elements */
     /* Accent Metric (Blue/Indigo) */
     .metric.accent-metric {
@@ -1277,6 +1297,9 @@
     </div>
 
     <div class="header-actions">
+      <button id="explainKpisBtn" class="btn-icon" title="Explain KPIs" type="button">
+        <i data-lucide="circle-help"></i>
+      </button>
       <!-- Theme Switcher -->
       <button id="themeToggleBtn" class="btn-icon" title="Toggle Theme" type="button">
         <i data-lucide="sun" id="themeSunIcon" style="display: none;"></i>
@@ -1363,7 +1386,7 @@
               <small id="slogReturnImpactSubtitle">slog months saved</small>
             </div>
             <div class="metric expense-metric">
-              <div class="metric-head"><span>-1% escalation saves me</span><i data-lucide="trending-down"></i></div>
+              <div class="metric-head"><span>-1% ESCAL'ON saves me</span><i data-lucide="trending-down"></i></div>
               <strong id="slogEscalationImpact">-</strong>
               <small id="slogEscalationImpactSubtitle">slog months saved</small>
             </div>
@@ -1739,6 +1762,7 @@
       bucketTemplate: document.getElementById("bucketTemplate"),
       streamTemplate: document.getElementById("streamTemplate"),
       canvas: document.getElementById("projectionChart"),
+      explainKpisBtn: document.getElementById("explainKpisBtn"),
       themeToggleBtn: document.getElementById("themeToggleBtn"),
       themeSunIcon: document.getElementById("themeSunIcon"),
       themeMoonIcon: document.getElementById("themeMoonIcon"),
@@ -2672,6 +2696,54 @@
       }
     }
 
+    function setupKpiExplanations() {
+      const explanations = {
+        liveExpense24h: "Expense burn estimated since midnight.",
+        liveReturn24h: "Investment return estimated since midnight.",
+        liveExpenseToReturnPct: "Monthly returns divided by monthly expenses.",
+        escapeCapital: "Capital needed today for future expenses.",
+        liquidAssets: "Assets marked usable for expenses.",
+        pvIncomeStreams: "Future income value plus spendable assets.",
+        slogMonths: "Regular income months needed for the gap.",
+        affordableSpendFromAssets: "Monthly spend supported by assets alone.",
+        affordableSpend: "Monthly spend supported by assets plus income.",
+        slogReturnImpact: "Effect of 1% higher annual returns.",
+        slogEscalationImpact: "Effect of expenses rising 1% slower.",
+        slogCombinedImpact: "Combined return and expense improvement.",
+        finalAssets: "Projected ending asset value.",
+        firstGap: "First month income cannot cover expenses.",
+      };
+
+      Object.entries(explanations).forEach(([id, text]) => {
+        const valueEl = document.getElementById(id);
+        const card = valueEl?.closest(".metric");
+        if (!card) return;
+        card.dataset.help = text;
+        let help = card.querySelector(".kpi-help");
+        if (!help) {
+          help = document.createElement("div");
+          help.className = "kpi-help";
+          card.appendChild(help);
+        }
+        help.textContent = text;
+      });
+
+      const saved = localStorage.getItem("financial_planner_explain_kpis") === "true";
+      document.body.classList.toggle("explain-kpis", saved);
+      if (els.explainKpisBtn) {
+        els.explainKpisBtn.setAttribute("aria-pressed", String(saved));
+      }
+    }
+
+    function toggleKpiExplanations() {
+      const enabled = !document.body.classList.contains("explain-kpis");
+      document.body.classList.toggle("explain-kpis", enabled);
+      localStorage.setItem("financial_planner_explain_kpis", String(enabled));
+      if (els.explainKpisBtn) {
+        els.explainKpisBtn.setAttribute("aria-pressed", String(enabled));
+      }
+    }
+
     // Dual-control range-input binder (clamps to min/max on blur, updates slider on type)
     // Upgraded to handle ONLY integer values between 4 and 15
     function bindSync(inputEl, sliderEl, callback) {
@@ -2849,6 +2921,10 @@
       setTheme(currentTheme === "dark" ? "light" : "dark");
     });
 
+    if (els.explainKpisBtn) {
+      els.explainKpisBtn.addEventListener("click", toggleKpiExplanations);
+    }
+
     // Dashboard dynamic controls
     els.addBucket.addEventListener("click", () => {
       addBucketRow({ name: "New bucket", start: 0, value: 0, returnRate: 6, liquid: true });
@@ -2899,6 +2975,7 @@
     // Initialize Default States & Load Default Data
     initTheme();
     loadDefaultData();
+    setupKpiExplanations();
     
   </script>
 </body>
