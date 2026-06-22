@@ -643,7 +643,7 @@
     /* Metrics Groups Dashboard */
     .metrics-dashboard {
       display: grid;
-      grid-template-columns: 3fr 3fr 4fr 2.5fr;
+      grid-template-columns: 3fr 3fr 2.6fr 3fr 2.5fr;
       gap: 16px;
       margin-bottom: 16px;
       width: 100%;
@@ -1336,9 +1336,9 @@
             </div>
             <!-- Row 2 -->
             <div class="metric accent-metric">
-              <div class="metric-head"><span>I NEED</span><i data-lucide="calculator"></i></div>
-              <strong id="escapeCapitalMonthly">-</strong>
-              <small>Matches Escape Capital</small>
+              <div class="metric-head"><span>I'll have to slog for</span><i data-lucide="calculator"></i></div>
+              <strong id="slogMonths">-</strong>
+              <small id="slogMonthsSubtitle">for the - I need</small>
             </div>
             <div class="metric income-metric">
               <div class="metric-head"><span>SO I'M AT</span><i data-lucide="piggy-bank"></i></div>
@@ -1353,24 +1353,36 @@
           </div>
         </div>
 
-        <!-- Group 3: other.numbers. -->
+        <!-- Group 3: Its.just.1% -->
+        <div class="metric-group">
+          <div class="metric-group-header">Its.just.1%</div>
+          <div class="metrics" style="grid-template-columns: repeat(3, 1fr);">
+            <div class="metric income-metric">
+              <div class="metric-head"><span>+1% return saves me</span><i data-lucide="trending-up"></i></div>
+              <strong id="slogReturnImpact">-</strong>
+              <small id="slogReturnImpactSubtitle">slog months saved</small>
+            </div>
+            <div class="metric expense-metric">
+              <div class="metric-head"><span>-1% escalation saves me</span><i data-lucide="trending-down"></i></div>
+              <strong id="slogEscalationImpact">-</strong>
+              <small id="slogEscalationImpactSubtitle">slog months saved</small>
+            </div>
+            <div class="metric exotic-blue-metric">
+              <div class="metric-head"><span>Both Together</span><i data-lucide="sparkles"></i></div>
+              <strong id="slogCombinedImpact">-</strong>
+              <small id="slogCombinedImpactSubtitle">slog months saved</small>
+            </div>
+          </div>
+        </div>
+
+        <!-- Group 4: other.numbers. -->
         <div class="metric-group">
           <div class="metric-group-header">other.numbers.</div>
-          <div class="metrics" style="grid-template-columns: repeat(4, 1fr);">
-            <div class="metric income-metric">
-              <div class="metric-head"><span>I'll have to slog for</span><i data-lucide="clock"></i></div>
-              <strong id="slogMonths">-</strong>
-              <small>Work months to cover gap</small>
-            </div>
+          <div class="metrics" style="grid-template-columns: repeat(2, 1fr);">
             <div class="metric accent-metric">
               <div class="metric-head"><span>Final Assets</span><i data-lucide="flag"></i></div>
               <strong id="finalAssets">-</strong>
               <small id="finalAssetsSubtitle">After returns & gaps</small>
-            </div>
-            <div class="metric income-metric">
-              <div class="metric-head"><span>+1% Return Impact</span><i data-lucide="trending-up"></i></div>
-              <strong id="finalAssetsSensitivity">-</strong>
-              <small>Extra assets built</small>
             </div>
             <div class="metric warning-metric">
               <div class="metric-head"><span>First Gap</span><i data-lucide="alert-circle"></i></div>
@@ -1707,6 +1719,13 @@
       finalAssetsSubtitle: document.getElementById("finalAssetsSubtitle"),
       finalAssetsSensitivity: document.getElementById("finalAssetsSensitivity"),
       slogMonths: document.getElementById("slogMonths"),
+      slogMonthsSubtitle: document.getElementById("slogMonthsSubtitle"),
+      slogReturnImpact: document.getElementById("slogReturnImpact"),
+      slogReturnImpactSubtitle: document.getElementById("slogReturnImpactSubtitle"),
+      slogEscalationImpact: document.getElementById("slogEscalationImpact"),
+      slogEscalationImpactSubtitle: document.getElementById("slogEscalationImpactSubtitle"),
+      slogCombinedImpact: document.getElementById("slogCombinedImpact"),
+      slogCombinedImpactSubtitle: document.getElementById("slogCombinedImpactSubtitle"),
       liveReturn24h: document.getElementById("liveReturn24h"),
       liveExpense24h: document.getElementById("liveExpense24h"),
       liveExpenseToReturnPct: document.getElementById("liveExpenseToReturnPct"),
@@ -1761,6 +1780,13 @@
     // Percentage formatter
     function pct(value) {
       return `${(value * 100).toFixed(2)}%`;
+    }
+
+    function formatAssetDelta(value) {
+      const currency = els.currency.value || "";
+      const abs = Math.abs(value);
+      if (abs >= 10000000) return `${currency}${(value / 10000000).toFixed(1)}Cr`;
+      return `${currency}${(value / 100000).toFixed(1)}L`;
     }
 
     // Add row helper for investment buckets
@@ -1984,6 +2010,57 @@
       };
     }
 
+    function calculateEscapeCapitalNeeded(baseExpense, expenseEscalationYearly, monthlyDiscount, months) {
+      let escapeCapitalNeeded = 0;
+      for (let month = 0; month < months; month++) {
+        const yearIndex = Math.floor(month / 12);
+        const expense = baseExpense * Math.pow(1 + expenseEscalationYearly, yearIndex);
+        escapeCapitalNeeded += expense / Math.pow(1 + monthlyDiscount, month + 1);
+      }
+      return escapeCapitalNeeded;
+    }
+
+    function calculatePresentValueOfPassiveIncome(streams, monthlyDiscount, months) {
+      const passiveStreams = streams.filter(s => s.type === "passive");
+      let pvOfPassiveIncomes = 0;
+      for (let month = 0; month < months; month++) {
+        const passiveIncome = incomeForMonth(passiveStreams, month);
+        pvOfPassiveIncomes += passiveIncome / Math.pow(1 + monthlyDiscount, month + 1);
+      }
+      return pvOfPassiveIncomes;
+    }
+
+    function calculateSlogMonths(escapeCapitalNeeded, spendableAssets, pvOfPassiveIncomes, streams, monthlyDiscount) {
+      const workGap = escapeCapitalNeeded - spendableAssets - pvOfPassiveIncomes;
+      if (workGap <= 0) return 0;
+
+      const regularStreams = streams.filter(s => s.type === "regular");
+      const totalRegularIncome = regularStreams.reduce((sum, s) => sum + s.amount, 0);
+      if (totalRegularIncome <= 0) return null;
+
+      const weightedGrowth = regularStreams.reduce((sum, s) => sum + s.amount * s.growth, 0) / totalRegularIncome;
+      let accumPV = 0;
+      let m = 0;
+      const maxMonths = 1200;
+      while (accumPV < workGap && m < maxMonths) {
+        const yearIndex = Math.floor(m / 12);
+        const income = totalRegularIncome * Math.pow(1 + weightedGrowth, yearIndex);
+        accumPV += income / Math.pow(1 + monthlyDiscount, m + 1);
+        m++;
+      }
+      return accumPV >= workGap ? m : ">1200";
+    }
+
+    function formatSlogImpact(baseMonths, scenarioMonths) {
+      if (baseMonths === null || scenarioMonths === null) return { value: "N/A", label: "no regular income" };
+      if (baseMonths === ">1200" || scenarioMonths === ">1200") return { value: "Check", label: "still over 100 yrs" };
+      if (baseMonths === 0) return { value: "0 Mo", label: "already escaped" };
+      const saved = baseMonths - scenarioMonths;
+      if (saved > 0) return { value: `${saved} Mo`, label: "slog months saved", monthsSaved: saved };
+      if (saved === 0) return { value: "0 Mo", label: "no change", monthsSaved: 0 };
+      return { value: `+${Math.abs(saved)} Mo`, label: "extra slog months", monthsSaved: saved };
+    }
+
     // Main Calculator function
     function calculate() {
       const rawBuckets = collectBuckets();
@@ -1999,12 +2076,7 @@
 
       // Calculate Escape Capital (Initial Capital Needed) based on Tab 1 inputs
       const monthlyDiscount = Math.pow(1 + sim.opening.weightedLiquidReturn, 1 / 12) - 1;
-      let escapeCapitalNeeded = 0;
-      for (let month = 0; month < months; month++) {
-        const yearIndex = Math.floor(month / 12);
-        const expense = baseExpense * Math.pow(1 + expenseEscalationYearly, yearIndex);
-        escapeCapitalNeeded += expense / Math.pow(1 + monthlyDiscount, month + 1);
-      }
+      const escapeCapitalNeeded = calculateEscapeCapitalNeeded(baseExpense, expenseEscalationYearly, monthlyDiscount, months);
       lastCapitalNeeded = escapeCapitalNeeded; // update global cache for Journey Progress card
 
       // Calculate PV of Income streams
@@ -2027,40 +2099,32 @@
       lastBuckets = sim.buckets;
       const spendFromAssets = expenseFactor > 0 ? sim.opening.liquid / expenseFactor : 0;
 
-      // Calculate PV of Passive Income streams
-      const passiveStreams = streams.filter(s => s.type === "passive");
-      let pvOfPassiveIncomes = 0;
-      for (let month = 0; month < months; month++) {
-        const passiveIncome = incomeForMonth(passiveStreams, month);
-        pvOfPassiveIncomes += passiveIncome / Math.pow(1 + monthlyDiscount, month + 1);
-      }
-
       // Calculate work months required to slog (PV of regular streams covers the workGap)
-      const workGap = escapeCapitalNeeded - sim.opening.liquid - pvOfPassiveIncomes;
-      let slogMonths = 0;
-      if (workGap <= 0) {
-        slogMonths = 0;
-      } else {
-        const regularStreams = streams.filter(s => s.type === "regular");
-        const totalRegularIncome = regularStreams.reduce((sum, s) => sum + s.amount, 0);
-        if (totalRegularIncome <= 0) {
-          slogMonths = null;
-        } else {
-          const weightedGrowth = regularStreams.reduce((sum, s) => sum + s.amount * s.growth, 0) / totalRegularIncome;
-          let accumPV = 0;
-          let m = 0;
-          const maxMonths = 1200; // 100 years max slogging limit
-          while (accumPV < workGap && m < maxMonths) {
-            const yearIndex = Math.floor(m / 12);
-            const income = totalRegularIncome * Math.pow(1 + weightedGrowth, yearIndex);
-            accumPV += income / Math.pow(1 + monthlyDiscount, m + 1);
-            m++;
-          }
-          slogMonths = accumPV >= workGap ? m : ">1200";
-        }
-      }
+      const pvOfPassiveIncomes = calculatePresentValueOfPassiveIncome(streams, monthlyDiscount, months);
+      const slogMonths = calculateSlogMonths(escapeCapitalNeeded, sim.opening.liquid, pvOfPassiveIncomes, streams, monthlyDiscount);
 
-      renderMetrics(sim.opening, sim.yearly, sim.firstGapMonth, sim.requiredToday, escapeCapitalNeeded, pvOfIncomes, sim.assetsZeroMonth, sim.finalUntouchedTotal, affordableMonthlySpend, finalAssetsDiff, baseExpense, spendFromAssets, slogMonths);
+      const returnDiscount = Math.pow(1 + sens.opening.weightedLiquidReturn, 1 / 12) - 1;
+      const returnEscapeCapital = calculateEscapeCapitalNeeded(baseExpense, expenseEscalationYearly, returnDiscount, months);
+      const returnPvPassive = calculatePresentValueOfPassiveIncome(streams, returnDiscount, months);
+      const returnSlogMonths = calculateSlogMonths(returnEscapeCapital, sens.opening.liquid, returnPvPassive, streams, returnDiscount);
+
+      const lowerEscalation = Math.max(0, expenseEscalationYearly - 0.01);
+      const lowerEscSim = runSimulation(rawBuckets, streams, months, baseExpense, lowerEscalation, 0);
+      const lowerEscEscapeCapital = calculateEscapeCapitalNeeded(baseExpense, lowerEscalation, monthlyDiscount, months);
+      const lowerEscSlogMonths = calculateSlogMonths(lowerEscEscapeCapital, sim.opening.liquid, pvOfPassiveIncomes, streams, monthlyDiscount);
+      const lowerEscFinalAssetsDiff = lowerEscSim.finalTotal - sim.finalTotal;
+
+      const combinedEscapeCapital = calculateEscapeCapitalNeeded(baseExpense, lowerEscalation, returnDiscount, months);
+      const combinedSlogMonths = calculateSlogMonths(combinedEscapeCapital, sens.opening.liquid, returnPvPassive, streams, returnDiscount);
+
+      const slogSensitivity = {
+        returnImpact: formatSlogImpact(slogMonths, returnSlogMonths),
+        escalationImpact: formatSlogImpact(slogMonths, lowerEscSlogMonths),
+        combinedImpact: formatSlogImpact(slogMonths, combinedSlogMonths),
+        escalationFinalAssetsDiff: lowerEscFinalAssetsDiff,
+      };
+
+      renderMetrics(sim.opening, sim.yearly, sim.firstGapMonth, sim.requiredToday, escapeCapitalNeeded, pvOfIncomes, sim.assetsZeroMonth, sim.finalUntouchedTotal, affordableMonthlySpend, finalAssetsDiff, baseExpense, spendFromAssets, slogMonths, slogSensitivity);
       renderChart();
       renderTables(sim.yearly, sim.buckets);
 
@@ -2123,7 +2187,7 @@
     }
 
     // Render Metric displays & Alert box
-    function renderMetrics(opening, yearly, firstGapMonth, requiredToday, escapeCapitalNeeded, pvOfIncomes, assetsZeroMonth, finalUntouchedTotal, affordableMonthlySpend, finalAssetsDiff, baseExpense, spendFromAssets, slogMonths) {
+    function renderMetrics(opening, yearly, firstGapMonth, requiredToday, escapeCapitalNeeded, pvOfIncomes, assetsZeroMonth, finalUntouchedTotal, affordableMonthlySpend, finalAssetsDiff, baseExpense, spendFromAssets, slogMonths, slogSensitivity) {
       const final = yearly[yearly.length - 1] || { income: 0, expenses: 0, total: 0, liquid: 0 };
       const coverage = final.expenses > 0 ? final.income / final.expenses : 0;
 
@@ -2144,6 +2208,31 @@
         } else {
           els.slogMonths.textContent = `${slogMonths} Mo`;
         }
+      }
+      if (els.slogMonthsSubtitle) {
+        els.slogMonthsSubtitle.textContent = `for the ${formatMoney(baseExpense, false)} I need`;
+      }
+      if (slogSensitivity) {
+        if (els.slogReturnImpact) {
+          const saved = slogSensitivity.returnImpact.monthsSaved;
+          els.slogReturnImpact.textContent = Number.isFinite(saved)
+            ? `${Math.max(0, saved)} slog Mo`
+            : slogSensitivity.returnImpact.value;
+        }
+        if (els.slogReturnImpactSubtitle) {
+          els.slogReturnImpactSubtitle.textContent = `and ${formatAssetDelta(finalAssetsDiff)} in assets`;
+        }
+        if (els.slogEscalationImpact) {
+          const saved = slogSensitivity.escalationImpact.monthsSaved;
+          els.slogEscalationImpact.textContent = Number.isFinite(saved)
+            ? `${Math.max(0, saved)} slog Mo`
+            : slogSensitivity.escalationImpact.value;
+        }
+        if (els.slogEscalationImpactSubtitle) {
+          els.slogEscalationImpactSubtitle.textContent = `and ${formatAssetDelta(slogSensitivity.escalationFinalAssetsDiff || 0)} in assets`;
+        }
+        if (els.slogCombinedImpact) els.slogCombinedImpact.textContent = slogSensitivity.combinedImpact.value;
+        if (els.slogCombinedImpactSubtitle) els.slogCombinedImpactSubtitle.textContent = slogSensitivity.combinedImpact.label;
       }
 
       const cumulativeValue = pvOfIncomes + opening.liquid;
