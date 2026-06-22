@@ -643,7 +643,7 @@
     /* Metrics Groups Dashboard */
     .metrics-dashboard {
       display: grid;
-      grid-template-columns: 3fr 3fr 3fr 2.5fr;
+      grid-template-columns: 3fr 3fr 4fr 2.5fr;
       gap: 16px;
       margin-bottom: 16px;
       width: 100%;
@@ -1346,7 +1346,7 @@
               <small>Supported by assets only</small>
             </div>
             <div class="metric exotic-blue-metric">
-              <div class="metric-head"><span>AND, THE PLAN IS</span><i data-lucide="trending-up"></i></div>
+              <div class="metric-head"><span>And I'll likely end up with</span><i data-lucide="trending-up"></i></div>
               <strong id="affordableSpend">-</strong>
               <small>Supported by total PV</small>
             </div>
@@ -1356,11 +1356,11 @@
         <!-- Group 3: other.numbers. -->
         <div class="metric-group">
           <div class="metric-group-header">other.numbers.</div>
-          <div class="metrics" style="grid-template-columns: repeat(3, 1fr);">
-            <div class="metric warning-metric">
-              <div class="metric-head"><span>First Gap</span><i data-lucide="alert-circle"></i></div>
-              <strong id="firstGap">-</strong>
-              <small id="firstGapSubtitle">Income shortfall starts</small>
+          <div class="metrics" style="grid-template-columns: repeat(4, 1fr);">
+            <div class="metric income-metric">
+              <div class="metric-head"><span>I'll have to slog for</span><i data-lucide="clock"></i></div>
+              <strong id="slogMonths">-</strong>
+              <small>Work months to cover gap</small>
             </div>
             <div class="metric accent-metric">
               <div class="metric-head"><span>Final Assets</span><i data-lucide="flag"></i></div>
@@ -1371,6 +1371,11 @@
               <div class="metric-head"><span>+1% Return Impact</span><i data-lucide="trending-up"></i></div>
               <strong id="finalAssetsSensitivity">-</strong>
               <small>Extra assets built</small>
+            </div>
+            <div class="metric warning-metric">
+              <div class="metric-head"><span>First Gap</span><i data-lucide="alert-circle"></i></div>
+              <strong id="firstGap">-</strong>
+              <small id="firstGapSubtitle">Income shortfall starts</small>
             </div>
           </div>
         </div>
@@ -1558,14 +1563,13 @@
           </div>
         </div>
 
-        <!-- Income Streams -->
-        <div class="panel pad">
+        <!-- Regular Income Streams -->
+        <div class="panel pad" style="margin-bottom: 0;">
           <div class="section-head">
             <div>
-              <h2>Income Streams</h2>
-              <small>Amounts stay flat within a year and increment on anniversaries.</small>
+              <h2>Regular Income Streams</h2>
             </div>
-            <button id="addStream" class="btn" type="button">
+            <button id="addStreamRegular" class="btn" type="button">
               <i data-lucide="plus"></i>Stream
             </button>
           </div>
@@ -1581,7 +1585,34 @@
                   <th style="width: 50px;"></th>
                 </tr>
               </thead>
-              <tbody id="streamRows"></tbody>
+              <tbody id="streamRowsRegular"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Passive Income Streams -->
+        <div class="panel pad">
+          <div class="section-head">
+            <div>
+              <h2>Passive Income Streams</h2>
+            </div>
+            <button id="addStreamPassive" class="btn" type="button">
+              <i data-lucide="plus"></i>Stream
+            </button>
+          </div>
+          <div class="clean-table-shell">
+            <table class="clean-table">
+              <thead>
+                <tr>
+                  <th class="name-cell">Name</th>
+                  <th class="amount-cell">Monthly</th>
+                  <th class="month-cell">Start mo.</th>
+                  <th class="month-cell">End mo.</th>
+                  <th class="rate-cell">Growth %</th>
+                  <th style="width: 50px;"></th>
+                </tr>
+              </thead>
+              <tbody id="streamRowsPassive"></tbody>
             </table>
           </div>
           <div class="actions" style="display: flex; justify-content: flex-end; margin-top: 16px;">
@@ -1654,9 +1685,11 @@
       expenseEscalationSlider: document.getElementById("expenseEscalationSlider"),
       chartMode: document.getElementById("chartMode"),
       bucketRows: document.getElementById("bucketRows"),
-      streamRows: document.getElementById("streamRows"),
+      streamRowsRegular: document.getElementById("streamRowsRegular"),
+      streamRowsPassive: document.getElementById("streamRowsPassive"),
       addBucket: document.getElementById("addBucket"),
-      addStream: document.getElementById("addStream"),
+      addStreamRegular: document.getElementById("addStreamRegular"),
+      addStreamPassive: document.getElementById("addStreamPassive"),
       recalculate: document.getElementById("recalculate"),
       status: document.getElementById("status"),
       totalAssets: document.getElementById("totalAssets"),
@@ -1673,6 +1706,7 @@
       finalAssets: document.getElementById("finalAssets"),
       finalAssetsSubtitle: document.getElementById("finalAssetsSubtitle"),
       finalAssetsSensitivity: document.getElementById("finalAssetsSensitivity"),
+      slogMonths: document.getElementById("slogMonths"),
       liveReturn24h: document.getElementById("liveReturn24h"),
       liveExpense24h: document.getElementById("liveExpense24h"),
       liveExpenseToReturnPct: document.getElementById("liveExpenseToReturnPct"),
@@ -1751,13 +1785,15 @@
     }
 
     // Add row helper for income streams
-    function addStreamRow(data = {}) {
+    function addStreamRow(data = {}, type = "regular") {
       const row = els.streamTemplate.content.firstElementChild.cloneNode(true);
       row.querySelector(".stream-name").value = data.name ?? "Income";
       row.querySelector(".stream-amount").value = data.amount ?? 0;
       row.querySelector(".stream-start").value = data.start ?? 0;
       row.querySelector(".stream-end").value = data.end ?? "";
       row.querySelector(".stream-growth").value = data.growth ?? 0;
+      
+      row.dataset.type = type; // store type in DOM data attribute
       
       row.querySelector(".remove").addEventListener("click", () => {
         row.remove();
@@ -1767,7 +1803,11 @@
         input.addEventListener("input", calculate);
         input.addEventListener("change", calculate);
       });
-      els.streamRows.appendChild(row);
+      
+      const target = type === "passive" ? els.streamRowsPassive : els.streamRowsRegular;
+      if (target) {
+        target.appendChild(row);
+      }
       safeCreateIcons();
     }
 
@@ -1784,13 +1824,23 @@
 
     // Dynamic stream collect
     function collectStreams() {
-      return [...els.streamRows.querySelectorAll("tr")].map(row => ({
+      const regular = [...els.streamRowsRegular.querySelectorAll("tr")].map(row => ({
         name: row.querySelector(".stream-name").value.trim() || "Income",
         amount: Math.max(0, numberFrom(row.querySelector(".stream-amount"))),
         start: Math.max(0, Math.floor(numberFrom(row.querySelector(".stream-start")))),
         end: row.querySelector(".stream-end").value === "" ? Infinity : Math.max(0, Math.floor(numberFrom(row.querySelector(".stream-end")))),
         growth: numberFrom(row.querySelector(".stream-growth")) / 100,
+        type: "regular"
       }));
+      const passive = [...els.streamRowsPassive.querySelectorAll("tr")].map(row => ({
+        name: row.querySelector(".stream-name").value.trim() || "Income",
+        amount: Math.max(0, numberFrom(row.querySelector(".stream-amount"))),
+        start: Math.max(0, Math.floor(numberFrom(row.querySelector(".stream-start")))),
+        end: row.querySelector(".stream-end").value === "" ? Infinity : Math.max(0, Math.floor(numberFrom(row.querySelector(".stream-end")))),
+        growth: numberFrom(row.querySelector(".stream-growth")) / 100,
+        type: "passive"
+      }));
+      return [...regular, ...passive];
     }
 
     // Calculate income for a single month
@@ -1976,7 +2026,41 @@
       lastProjection = sim.yearly;
       lastBuckets = sim.buckets;
       const spendFromAssets = expenseFactor > 0 ? sim.opening.liquid / expenseFactor : 0;
-      renderMetrics(sim.opening, sim.yearly, sim.firstGapMonth, sim.requiredToday, escapeCapitalNeeded, pvOfIncomes, sim.assetsZeroMonth, sim.finalUntouchedTotal, affordableMonthlySpend, finalAssetsDiff, baseExpense, spendFromAssets);
+
+      // Calculate PV of Passive Income streams
+      const passiveStreams = streams.filter(s => s.type === "passive");
+      let pvOfPassiveIncomes = 0;
+      for (let month = 0; month < months; month++) {
+        const passiveIncome = incomeForMonth(passiveStreams, month);
+        pvOfPassiveIncomes += passiveIncome / Math.pow(1 + monthlyDiscount, month + 1);
+      }
+
+      // Calculate work months required to slog (PV of regular streams covers the workGap)
+      const workGap = escapeCapitalNeeded - sim.opening.liquid - pvOfPassiveIncomes;
+      let slogMonths = 0;
+      if (workGap <= 0) {
+        slogMonths = 0;
+      } else {
+        const regularStreams = streams.filter(s => s.type === "regular");
+        const totalRegularIncome = regularStreams.reduce((sum, s) => sum + s.amount, 0);
+        if (totalRegularIncome <= 0) {
+          slogMonths = null;
+        } else {
+          const weightedGrowth = regularStreams.reduce((sum, s) => sum + s.amount * s.growth, 0) / totalRegularIncome;
+          let accumPV = 0;
+          let m = 0;
+          const maxMonths = 1200; // 100 years max slogging limit
+          while (accumPV < workGap && m < maxMonths) {
+            const yearIndex = Math.floor(m / 12);
+            const income = totalRegularIncome * Math.pow(1 + weightedGrowth, yearIndex);
+            accumPV += income / Math.pow(1 + monthlyDiscount, m + 1);
+            m++;
+          }
+          slogMonths = accumPV >= workGap ? m : ">1200";
+        }
+      }
+
+      renderMetrics(sim.opening, sim.yearly, sim.firstGapMonth, sim.requiredToday, escapeCapitalNeeded, pvOfIncomes, sim.assetsZeroMonth, sim.finalUntouchedTotal, affordableMonthlySpend, finalAssetsDiff, baseExpense, spendFromAssets, slogMonths);
       renderChart();
       renderTables(sim.yearly, sim.buckets);
 
@@ -2039,7 +2123,7 @@
     }
 
     // Render Metric displays & Alert box
-    function renderMetrics(opening, yearly, firstGapMonth, requiredToday, escapeCapitalNeeded, pvOfIncomes, assetsZeroMonth, finalUntouchedTotal, affordableMonthlySpend, finalAssetsDiff, baseExpense, spendFromAssets) {
+    function renderMetrics(opening, yearly, firstGapMonth, requiredToday, escapeCapitalNeeded, pvOfIncomes, assetsZeroMonth, finalUntouchedTotal, affordableMonthlySpend, finalAssetsDiff, baseExpense, spendFromAssets, slogMonths) {
       const final = yearly[yearly.length - 1] || { income: 0, expenses: 0, total: 0, liquid: 0 };
       const coverage = final.expenses > 0 ? final.income / final.expenses : 0;
 
@@ -2049,6 +2133,18 @@
       if (els.escapeCapitalMonthly) els.escapeCapitalMonthly.textContent = formatMoney(baseExpense, false);
       if (els.affordableSpendFromAssets) els.affordableSpendFromAssets.textContent = formatMoney(spendFromAssets, false);
       if (els.affordableSpend) els.affordableSpend.textContent = formatMoney(affordableMonthlySpend, false);
+
+      if (els.slogMonths) {
+        if (slogMonths === null) {
+          els.slogMonths.textContent = "N/A";
+        } else if (slogMonths === 0) {
+          els.slogMonths.textContent = "0 Mo";
+        } else if (slogMonths === ">1200") {
+          els.slogMonths.textContent = ">100 Yrs";
+        } else {
+          els.slogMonths.textContent = `${slogMonths} Mo`;
+        }
+      }
 
       const cumulativeValue = pvOfIncomes + opening.liquid;
 
@@ -2518,13 +2614,23 @@
 
     // dynamic stream collect
     function collectStreamsRaw() {
-      return [...els.streamRows.querySelectorAll("tr")].map(row => ({
+      const regular = [...els.streamRowsRegular.querySelectorAll("tr")].map(row => ({
         name: row.querySelector(".stream-name").value.trim(),
         amount: numberFrom(row.querySelector(".stream-amount")),
         start: numberFrom(row.querySelector(".stream-start")),
         end: row.querySelector(".stream-end").value.trim() === "" ? "" : numberFrom(row.querySelector(".stream-end")),
         growth: numberFrom(row.querySelector(".stream-growth")),
+        type: "regular"
       }));
+      const passive = [...els.streamRowsPassive.querySelectorAll("tr")].map(row => ({
+        name: row.querySelector(".stream-name").value.trim(),
+        amount: numberFrom(row.querySelector(".stream-amount")),
+        start: numberFrom(row.querySelector(".stream-start")),
+        end: row.querySelector(".stream-end").value.trim() === "" ? "" : numberFrom(row.querySelector(".stream-end")),
+        growth: numberFrom(row.querySelector(".stream-growth")),
+        type: "passive"
+      }));
+      return [...regular, ...passive];
     }
 
     function saveConfig() {
@@ -2567,8 +2673,11 @@
           config.buckets.forEach(addBucketRow);
         }
         if (config.streams) {
-          els.streamRows.innerHTML = "";
-          config.streams.forEach(addStreamRow);
+          els.streamRowsRegular.innerHTML = "";
+          els.streamRowsPassive.innerHTML = "";
+          config.streams.forEach(s => {
+            addStreamRow(s, s.type || "regular");
+          });
         }
         
         return true;
@@ -2608,12 +2717,16 @@
         { name: "Gold", start: 0, value: 500000, returnRate: 6, liquid: false },
       ].forEach(addBucketRow);
       
-      els.streamRows.innerHTML = "";
+      els.streamRowsRegular.innerHTML = "";
+      els.streamRowsPassive.innerHTML = "";
       [
         { name: "Current income", amount: 80000, start: 0, growth: 8 },
-        { name: "Rent", amount: 25000, start: 0, growth: 5 },
         { name: "Future income", amount: 50000, start: 36, growth: 4 },
-      ].forEach(addStreamRow);
+      ].forEach(s => addStreamRow(s, "regular"));
+      
+      [
+        { name: "Rent", amount: 25000, start: 0, growth: 5 },
+      ].forEach(s => addStreamRow(s, "passive"));
 
       calculate();
     }
@@ -2639,8 +2752,13 @@
       calculate();
     });
 
-    els.addStream.addEventListener("click", () => {
-      addStreamRow({ name: "New income", amount: 50000, start: 12, growth: 3 });
+    els.addStreamRegular.addEventListener("click", () => {
+      addStreamRow({ name: "New income", amount: 50000, start: 12, growth: 3 }, "regular");
+      calculate();
+    });
+
+    els.addStreamPassive.addEventListener("click", () => {
+      addStreamRow({ name: "New income", amount: 25000, start: 12, growth: 3 }, "passive");
       calculate();
     });
 
