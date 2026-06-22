@@ -1395,7 +1395,7 @@
                 <span id="gameTargetCorpus" class="game-stats-value">-</span>
               </div>
               <div class="game-stats-row">
-                <span class="game-stats-label">Spendable Assets</span>
+                <span class="game-stats-label">Spendable Assets + Passive PV</span>
                 <span id="gameSpendableAssets" class="game-stats-value">-</span>
               </div>
               <div class="game-stats-row highlight">
@@ -2234,12 +2234,26 @@
       const opening = totals(buckets);
       const spendable = opening.liquid;
       const targetNeeded = lastCapitalNeeded;
+
+      // Calculate PV of Passive Income streams
+      const streams = collectStreams();
+      const passiveStreams = streams.filter(s => s.type === "passive");
+      const monthlyDiscount = Math.pow(1 + opening.weightedLiquidReturn, 1 / 12) - 1;
+      const months = Math.max(12, Math.floor(numberFrom(els.years) * 12));
+
+      let pvOfPassiveIncomes = 0;
+      for (let month = 0; month < months; month++) {
+        const passiveIncome = incomeForMonth(passiveStreams, month);
+        pvOfPassiveIncomes += passiveIncome / Math.pow(1 + monthlyDiscount, month + 1);
+      }
+
+      const totalAvailable = spendable + pvOfPassiveIncomes;
       
       let progressPct = 0;
       if (targetNeeded <= 0) {
         progressPct = 0;
       } else {
-        progressPct = Math.round((spendable / targetNeeded) * 100);
+        progressPct = Math.round((totalAvailable / targetNeeded) * 100);
       }
       
       const visualPct = Math.min(100, Math.max(0, progressPct));
@@ -2259,7 +2273,7 @@
         gameTargetCorpus.textContent = formatMoney(targetNeeded);
       }
       if (gameSpendableAssets) {
-        gameSpendableAssets.textContent = formatMoney(spendable);
+        gameSpendableAssets.textContent = formatMoney(totalAvailable);
       }
       if (gameProgressFill) {
         gameProgressFill.style.width = `${visualPct}%`;
